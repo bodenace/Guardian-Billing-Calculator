@@ -1,0 +1,967 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Guardian Billing Suite</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Syne:wght@400;600;700;800&family=JetBrains+Mono:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg:#f4f1eb; --surface:#ffffff; --ink:#1a1714; --muted:#8a8580; --rule:#dedad3;
+  --apcm:#2c5f2e; --ccm:#1a3a5c; --hho:#5c3a1a; --hospice:#5c1a2e;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--ink);font-family:'JetBrains Mono',monospace;min-height:100vh;}
+
+/* NAV */
+.nav{position:sticky;top:0;z-index:200;background:var(--ink);display:flex;align-items:center;}
+.nav-brand{padding:0 22px;font-family:'DM Sans',sans-serif;font-size:0.95rem;font-weight:700;color:white;letter-spacing:0.04em;border-right:1px solid rgba(255,255,255,0.12);height:52px;display:flex;align-items:center;white-space:nowrap;}
+.nav-tab{height:52px;padding:0 20px;font-family:'JetBrains Mono',monospace;font-size:0.65rem;font-weight:500;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.45);background:none;border:none;cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-2px;transition:all 0.15s;}
+.nav-tab:hover{color:rgba(255,255,255,0.75);}
+.nav-tab.active{color:white;border-bottom-color:white;}
+
+/* PAGES */
+.page{display:none;padding:40px 24px 80px;}
+.page.active{display:block;}
+.page-header{max-width:1060px;margin:0 auto 36px;border-bottom:2px solid var(--ink);padding-bottom:18px;}
+.page-header .eyebrow{font-size:0.62rem;letter-spacing:0.2em;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.page-header h1{font-family:'Syne',sans-serif;font-size:clamp(1.4rem,3.5vw,2.4rem);font-weight:800;letter-spacing:-0.03em;line-height:1.05;}
+.page-header .sub{margin-top:8px;font-size:0.68rem;color:var(--muted);line-height:1.6;}
+
+/* ══════════════════════════════════════
+   FLOWCHART PAGE
+══════════════════════════════════════ */
+.flow-wrap{max-width:860px;margin:0 auto;}
+
+.flow-step{display:flex;gap:20px;align-items:flex-start;margin-bottom:0;position:relative;}
+.flow-step-left{display:flex;flex-direction:column;align-items:center;flex-shrink:0;width:48px;}
+.step-num{width:40px;height:40px;border-radius:50%;background:var(--ink);color:white;font-family:'Syne',sans-serif;font-weight:800;font-size:0.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;z-index:1;}
+.step-line{width:2px;background:var(--rule);flex:1;min-height:32px;margin-top:4px;}
+.flow-step:last-child .step-line{display:none;}
+
+.flow-card{background:var(--surface);border:1.5px solid var(--rule);border-radius:10px;padding:18px 20px;flex:1;margin-bottom:28px;}
+.flow-card-header{display:flex;align-items:center;gap:12px;margin-bottom:10px;}
+.flow-card-tag{font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;font-weight:600;padding:3px 10px;border-radius:4px;}
+.tag-input{background:rgba(26,58,92,0.1);color:var(--ccm);}
+.tag-check{background:rgba(44,95,46,0.1);color:var(--apcm);}
+.tag-time{background:rgba(92,58,26,0.1);color:var(--hho);}
+.tag-algo{background:rgba(26,26,20,0.08);color:var(--ink);}
+.tag-output{background:rgba(92,26,46,0.1);color:var(--hospice);}
+
+.flow-card h3{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;letter-spacing:-0.01em;}
+.flow-card p{font-size:0.68rem;color:var(--muted);line-height:1.7;margin-top:6px;}
+
+.flow-branches{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-top:14px;}
+.flow-branch{border-radius:8px;padding:12px;border:1.5px solid;}
+.flow-branch h4{font-size:0.68rem;font-weight:700;margin-bottom:4px;}
+.flow-branch p{font-size:0.6rem;line-height:1.5;}
+.fb-apcm{border-color:var(--apcm);background:rgba(44,95,46,0.05);}
+.fb-apcm h4{color:var(--apcm);}
+.fb-ccm{border-color:var(--ccm);background:rgba(26,58,92,0.05);}
+.fb-ccm h4{color:var(--ccm);}
+.fb-hho{border-color:var(--hho);background:rgba(92,58,26,0.05);}
+.fb-hho h4{color:var(--hho);}
+.fb-hospice{border-color:var(--hospice);background:rgba(92,26,46,0.05);}
+.fb-hospice h4{color:var(--hospice);}
+
+.flow-output-grid{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin-top:14px;}
+.flow-output{background:var(--bg);border-radius:8px;padding:12px;border:1px solid var(--rule);}
+.flow-output h4{font-size:0.66rem;font-weight:600;margin-bottom:3px;}
+.flow-output p{font-size:0.59rem;color:var(--muted);line-height:1.5;}
+
+.flow-legend{max-width:860px;margin:0 auto;padding:16px 18px;background:var(--surface);border:1.5px solid var(--rule);border-radius:10px;font-size:0.6rem;color:var(--muted);line-height:1.8;}
+.flow-legend strong{font-family:'Syne',sans-serif;font-size:0.66rem;color:var(--ink);display:block;margin-bottom:6px;font-weight:700;}
+
+@media(max-width:700px){.flow-branches,.flow-output-grid{grid-template-columns:1fr 1fr;}}
+
+/* ══════════════════════════════════════
+   CODE SELECTOR PAGE
+══════════════════════════════════════ */
+.conflict-bar{max-width:1060px;margin:0 auto 28px;background:#fff3cd;border:1px solid #e6b800;border-radius:6px;padding:10px 16px;font-size:0.66rem;color:#6b4f00;letter-spacing:0.02em;display:none;}
+.conflict-bar.visible{display:block;}
+.programs-grid{max-width:1060px;margin:0 auto 36px;display:grid;grid-template-columns:repeat(4,1fr);gap:14px;}
+@media(max-width:900px){.programs-grid{grid-template-columns:1fr 1fr;}}
+@media(max-width:520px){.programs-grid{grid-template-columns:1fr;}}
+.program-panel{background:var(--surface);border:1.5px solid var(--rule);border-radius:10px;overflow:hidden;transition:all 0.2s;position:relative;}
+.program-panel.active{border-color:var(--panel-color);box-shadow:0 0 0 3px rgba(0,0,0,0.06),0 4px 20px rgba(0,0,0,0.06);}
+.program-panel.grayed{opacity:0.35;pointer-events:none;filter:grayscale(0.5);}
+.panel-header{padding:14px 16px 12px;border-bottom:1.5px solid var(--rule);cursor:pointer;user-select:none;display:flex;align-items:flex-start;justify-content:space-between;gap:10px;}
+.panel-header:hover{background:rgba(0,0,0,0.02);}
+.panel-header .prog-id{font-size:0.58rem;letter-spacing:0.18em;text-transform:uppercase;color:var(--panel-color);margin-bottom:3px;font-weight:600;}
+.panel-header .prog-name{font-family:'Syne',sans-serif;font-size:0.9rem;font-weight:700;line-height:1.2;}
+.toggle-btn{flex-shrink:0;width:20px;height:20px;border-radius:50%;border:1.5px solid var(--rule);background:transparent;cursor:pointer;position:relative;transition:all 0.15s;margin-top:2px;}
+.program-panel.active .toggle-btn{background:var(--panel-color);border-color:var(--panel-color);}
+.toggle-btn::after{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:7px;height:7px;border-radius:50%;background:white;opacity:0;transition:opacity 0.15s;}
+.program-panel.active .toggle-btn::after{opacity:1;}
+.code-row{display:flex;align-items:flex-start;padding:8px 16px;border-bottom:1px solid var(--rule);cursor:pointer;transition:background 0.1s;}
+.code-row:last-child{border-bottom:none;}
+.code-row:hover{background:rgba(0,0,0,0.025);}
+.code-row.selected{background:rgba(0,0,0,0.03);}
+.code-check{width:13px;height:13px;border:1.5px solid var(--rule);border-radius:3px;flex-shrink:0;margin-top:2px;margin-right:10px;position:relative;transition:all 0.12s;}
+.code-row.selected .code-check{background:var(--panel-color);border-color:var(--panel-color);}
+.code-row.selected .code-check::after{content:'';position:absolute;top:1px;left:3px;width:4px;height:7px;border-right:2px solid white;border-bottom:2px solid white;transform:rotate(45deg);}
+.code-info{flex:1;min-width:0;}
+.code-id{font-size:0.68rem;font-weight:600;color:var(--panel-color);margin-bottom:2px;}
+.code-desc{font-size:0.59rem;color:var(--muted);line-height:1.4;}
+.code-time{font-size:0.56rem;color:var(--muted);margin-top:2px;font-style:italic;}
+.code-rate{font-size:0.68rem;font-weight:600;color:var(--ink);white-space:nowrap;margin-left:8px;margin-top:2px;flex-shrink:0;}
+.panel-note{font-size:0.58rem;color:var(--muted);line-height:1.5;padding:8px 16px 12px;border-top:1px dashed var(--rule);}
+.calc-section{max-width:1060px;margin:0 auto;display:grid;grid-template-columns:1fr 340px;gap:18px;align-items:start;}
+@media(max-width:800px){.calc-section{grid-template-columns:1fr;}}
+.selected-codes-panel{background:var(--surface);border:1.5px solid var(--rule);border-radius:10px;overflow:hidden;}
+.section-head{padding:12px 16px;border-bottom:1.5px solid var(--rule);font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;letter-spacing:0.02em;display:flex;align-items:center;justify-content:space-between;}
+.section-head .eyebrow{font-family:'JetBrains Mono',monospace;font-size:0.56rem;font-weight:400;letter-spacing:0.15em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:2px;}
+.selected-item{display:flex;align-items:center;justify-content:space-between;padding:9px 16px;border-bottom:1px solid var(--rule);gap:10px;}
+.selected-item:last-child{border-bottom:none;}
+.sel-code{font-size:0.68rem;font-weight:600;}
+.sel-desc{font-size:0.58rem;color:var(--muted);margin-top:1px;}
+.empty-state{padding:24px 16px;font-size:0.62rem;color:var(--muted);text-align:center;line-height:1.7;}
+.patient-block{padding:14px 16px;border-top:1.5px solid var(--rule);display:flex;align-items:center;gap:10px;}
+.patient-label{font-size:0.6rem;color:var(--muted);flex-shrink:0;}
+.patient-input{width:72px;padding:5px 8px;border:1.5px solid var(--rule);border-radius:6px;background:var(--bg);font-family:'JetBrains Mono',monospace;font-size:0.75rem;font-weight:600;color:var(--ink);text-align:center;outline:none;transition:border-color 0.15s;}
+.patient-input:focus{border-color:var(--ink);}
+.totals-panel{background:var(--ink);color:white;border-radius:10px;overflow:hidden;}
+.totals-head{padding:12px 18px 10px;border-bottom:1px solid rgba(255,255,255,0.12);}
+.totals-head .eyebrow2{font-size:0.56rem;letter-spacing:0.15em;text-transform:uppercase;color:rgba(255,255,255,0.4);display:block;margin-bottom:3px;}
+.totals-head .ttitle{font-family:'Syne',sans-serif;font-size:0.85rem;font-weight:700;}
+.totals-body{padding:14px 18px;}
+.total-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;border-bottom:1px solid rgba(255,255,255,0.07);font-size:0.65rem;}
+.total-row:last-child{border-bottom:none;}
+.total-row .tlabel{color:rgba(255,255,255,0.5);}
+.total-row .val{font-weight:600;}
+.grand-total{padding:12px 18px;background:rgba(255,255,255,0.06);border-top:1px solid rgba(255,255,255,0.12);}
+.grand-label{font-size:0.56rem;letter-spacing:0.14em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:4px;}
+.grand-amount{font-family:'Syne',sans-serif;font-size:1.9rem;font-weight:800;letter-spacing:-0.03em;color:white;line-height:1;}
+.grand-sub{font-size:0.58rem;color:rgba(255,255,255,0.3);margin-top:3px;}
+.exclusion-legend{max-width:1060px;margin:28px auto 0;padding:16px 18px;background:var(--surface);border:1.5px solid var(--rule);border-radius:10px;font-size:0.6rem;color:var(--muted);line-height:1.8;}
+.exclusion-legend strong{font-size:0.62rem;color:var(--ink);display:block;margin-bottom:6px;font-family:'Syne',sans-serif;font-weight:700;}
+.rule-row{display:flex;gap:8px;padding:2px 0;align-items:baseline;}
+.rule-dot{width:5px;height:5px;border-radius:50%;background:var(--muted);flex-shrink:0;margin-top:5px;}
+
+/* ══════════════════════════════════════
+   CENSUS PAGE
+══════════════════════════════════════ */
+.census-toolbar{max-width:1060px;margin:0 auto 24px;display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap;}
+.census-summary{font-size:0.64rem;color:var(--muted);}
+.census-summary span{color:var(--ink);font-weight:600;}
+.analyze-btn{padding:11px 28px;background:var(--ink);color:white;font-family:'Syne',sans-serif;font-size:0.82rem;font-weight:700;border:none;border-radius:8px;cursor:pointer;letter-spacing:0.04em;transition:all 0.15s;}
+.analyze-btn:hover{background:#2d2a26;transform:translateY(-1px);box-shadow:0 4px 14px rgba(0,0,0,0.18);}
+.census-table-wrap{max-width:1060px;margin:0 auto;overflow-x:auto;}
+.census-table{width:100%;border-collapse:collapse;background:var(--surface);border-radius:10px;overflow:hidden;border:1.5px solid var(--rule);}
+.census-table thead tr{background:var(--ink);}
+.census-table th{padding:11px 14px;font-size:0.6rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.6);text-align:left;font-weight:500;white-space:nowrap;}
+.census-table td{padding:12px 14px;font-size:0.68rem;border-bottom:1px solid var(--rule);vertical-align:top;}
+.census-table tbody tr:last-child td{border-bottom:none;}
+.census-table tbody tr{cursor:pointer;transition:background 0.1s;}
+.census-table tbody tr.analyzed:hover{background:rgba(0,0,0,0.02);}
+.patient-name{font-weight:600;font-family:'Syne',sans-serif;font-size:0.78rem;}
+.patient-dx{font-size:0.58rem;color:var(--muted);margin-top:2px;line-height:1.4;}
+.hh-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.58rem;font-weight:600;letter-spacing:0.05em;}
+.hh-yes{background:rgba(92,58,26,0.1);color:var(--hho);}
+.hh-no{background:rgba(0,0,0,0.05);color:var(--muted);}
+.hospice-badge{background:rgba(92,26,46,0.1);color:var(--hospice);}
+.time-cell .time-val{font-weight:600;}
+.time-cell .time-label{color:var(--muted);font-size:0.56rem;}
+.result-pending{font-size:0.6rem;color:var(--muted);font-style:italic;}
+.result-content{display:none;}
+.result-content.visible{display:block;}
+.best-badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:0.55rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;margin-left:6px;}
+.badge-apcm{background:rgba(44,95,46,0.12);color:var(--apcm);}
+.badge-ccm{background:rgba(26,58,92,0.12);color:var(--ccm);}
+.badge-hho{background:rgba(92,58,26,0.12);color:var(--hho);}
+.badge-mixed{background:rgba(0,0,0,0.07);color:var(--muted);}
+.view-note-btn{margin-top:8px;padding:5px 12px;background:transparent;border:1px solid var(--rule);border-radius:5px;font-family:'JetBrains Mono',monospace;font-size:0.6rem;cursor:pointer;color:var(--muted);transition:all 0.12s;display:none;}
+.view-note-btn:hover{border-color:var(--ink);color:var(--ink);}
+.view-note-btn.visible{display:inline-block;}
+
+.analysis-banner{max-width:1060px;margin:0 auto 24px;padding:16px 20px;background:var(--ink);color:white;border-radius:10px;display:none;}
+.analysis-banner.visible{display:flex;gap:28px;flex-wrap:wrap;align-items:center;}
+.banner-stat{text-align:center;}
+.banner-stat .bval{font-family:'Syne',sans-serif;font-size:1.5rem;font-weight:800;line-height:1;}
+.banner-stat .blabel{font-size:0.56rem;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-top:3px;}
+.banner-divider{width:1px;background:rgba(255,255,255,0.12);align-self:stretch;}
+
+/* ══════════════════════════════════════
+   BILLING NOTE MODAL
+══════════════════════════════════════ */
+.modal-backdrop{position:fixed;inset:0;z-index:500;background:rgba(26,23,20,0.6);backdrop-filter:blur(4px);display:none;align-items:center;justify-content:center;padding:24px;}
+.modal-backdrop.visible{display:flex;}
+.modal{background:var(--surface);border-radius:12px;width:100%;max-width:700px;max-height:90vh;overflow:hidden;display:flex;flex-direction:column;box-shadow:0 24px 80px rgba(0,0,0,0.3);}
+.modal-header{padding:16px 20px;border-bottom:1.5px solid var(--rule);display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-shrink:0;}
+.modal-header-left .modal-eyebrow{font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);margin-bottom:3px;}
+.modal-header-left .modal-title{font-family:'Syne',sans-serif;font-size:1rem;font-weight:800;}
+.modal-close{width:28px;height:28px;border-radius:50%;border:1.5px solid var(--rule);background:transparent;cursor:pointer;font-size:1rem;display:flex;align-items:center;justify-content:center;color:var(--muted);transition:all 0.12s;flex-shrink:0;}
+.modal-close:hover{background:var(--ink);color:white;border-color:var(--ink);}
+.modal-body{overflow-y:auto;padding:0;}
+
+/* EHR Note Styles */
+.ehr-note{font-family:'JetBrains Mono',monospace;font-size:0.68rem;}
+.ehr-header{background:#f8f7f4;border-bottom:2px solid var(--rule);padding:16px 20px;}
+.ehr-header-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px 24px;}
+.ehr-field{display:flex;gap:6px;align-items:baseline;}
+.ehr-field-label{font-size:0.58rem;color:var(--muted);text-transform:uppercase;letter-spacing:0.1em;flex-shrink:0;min-width:80px;}
+.ehr-field-value{font-size:0.66rem;font-weight:600;color:var(--ink);}
+.ehr-divider{height:1px;background:var(--rule);margin:0;}
+.ehr-section{padding:14px 20px;border-bottom:1px solid var(--rule);}
+.ehr-section:last-child{border-bottom:none;}
+.ehr-section-title{font-size:0.58rem;letter-spacing:0.14em;text-transform:uppercase;color:var(--muted);font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:8px;}
+.ehr-section-title::after{content:'';flex:1;height:1px;background:var(--rule);}
+.ehr-body-text{font-size:0.65rem;line-height:1.8;color:var(--ink);}
+.ehr-code-block{background:#f8f7f4;border:1px solid var(--rule);border-radius:6px;padding:10px 14px;margin-top:8px;}
+.ehr-code-line{display:flex;justify-content:space-between;align-items:baseline;padding:4px 0;border-bottom:1px solid var(--rule);font-size:0.64rem;}
+.ehr-code-line:last-child{border-bottom:none;}
+.ehr-code-label{font-weight:600;color:var(--ink);}
+.ehr-code-desc{color:var(--muted);font-size:0.6rem;}
+.ehr-code-amt{font-weight:600;}
+.ehr-time-log{margin-top:8px;}
+.ehr-time-row{display:flex;gap:12px;font-size:0.63rem;padding:5px 0;border-bottom:1px dashed var(--rule);}
+.ehr-time-row:last-child{border-bottom:none;}
+.ehr-time-date{color:var(--muted);flex-shrink:0;width:80px;}
+.ehr-time-type{color:var(--ccm);font-weight:600;width:100px;flex-shrink:0;}
+.ehr-time-desc{color:var(--ink);flex:1;}
+.ehr-time-min{font-weight:600;color:var(--ink);flex-shrink:0;}
+.ehr-sig{padding:14px 20px;background:#f8f7f4;border-top:2px solid var(--rule);display:flex;justify-content:space-between;align-items:flex-end;gap:20px;flex-shrink:0;}
+.ehr-sig-left{font-size:0.6rem;color:var(--muted);line-height:1.6;}
+.ehr-sig-right{text-align:right;font-size:0.6rem;color:var(--muted);}
+.ehr-sig-name{font-family:'Syne',sans-serif;font-size:0.75rem;font-weight:700;color:var(--ink);}
+.ehr-status-badge{display:inline-block;padding:3px 10px;border-radius:4px;font-size:0.58rem;font-weight:600;letter-spacing:0.06em;text-transform:uppercase;background:rgba(44,95,46,0.12);color:var(--apcm);}
+
+/* LOADING OVERLAY */
+.overlay{position:fixed;inset:0;z-index:400;background:rgba(244,241,235,0.88);backdrop-filter:blur(3px);display:none;flex-direction:column;align-items:center;justify-content:center;gap:20px;}
+.overlay.visible{display:flex;}
+.spinner{width:42px;height:42px;border:3px solid var(--rule);border-top-color:var(--ink);border-radius:50%;animation:spin 0.75s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.overlay-label{font-family:'Syne',sans-serif;font-size:1rem;font-weight:700;color:var(--ink);}
+.overlay-sub{font-size:0.64rem;color:var(--muted);}
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <div class="nav-brand"><img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iOTciIGhlaWdodD0iMTA2IiB2aWV3Qm94PSIwIDAgOTcgMTA2IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBkPSJNMzQuNTAyNCAwQzQzLjQ1MDUgMCA1MS41MDUyIDQuMzY2NDggNTYuMDEyNCAxMS4zNTI5SDc1Ljk5NTRDODcuODM4NiAxMS4zNTI5IDk3IDIwLjU5NzcgOTcgMzIuNTQ4N1Y4MS41MDJDOTcgODEuNTkzNCA5Ni45OTY5IDgxLjY4NDkgOTYuOTkwOSA4MS43NzYxQzk1LjkzNTQgOTcuOTE0NCA4My40NTY3IDEwNi4wMDcgNzEuMzA5NCAxMDZDNTkuMTgxOCAxMDUuOTkzIDQ2LjU5OTkgOTcuOTI1OSA0NS4yMDE0IDgxLjg2NjdDNDUuMDAxOSA3OS41NzQ2IDQ2LjY4MTIgNzcuNTUzIDQ4Ljk1MjYgNzcuMzUxNUM1MS4yMjQgNzcuMTUwMSA1My4yMjc0IDc4Ljg0NTIgNTMuNDI3IDgxLjEzNzRDNTQuMzg3MyA5Mi4xNjQzIDYyLjY5NjMgOTcuNjYyOCA3MS4zMTM5IDk3LjY2NzVDNzkuODgxMSA5Ny42NzIyIDg3Ljk3MzYgOTIuMjYgODguNzQyNyA4MS4zNDU0VjMyLjU0ODdDODguNzQyNyAyNS4xOTk2IDgzLjI3ODIgMTkuNjg1NCA3NS45OTU0IDE5LjY4NTRINTMuNjI4NkM1Mi4wNjQ4IDE5LjY4NTMgNTAuNjM1MyAxOC43OTM5IDQ5LjkzNTkgMTcuMzgyNUM0Ny4zMDY2IDEyLjA3NjEgNDEuNDgzMiA4LjMzMjQ3IDM0LjUwMjQgOC4zMzI0N0gyMy4yNTE5QzIxLjM2MzEgOC4zMzI1MiAxOS41NTE3IDkuMDg5NzIgMTguMjE2MSAxMC40Mzc1QzE3Ljc3MTQgMTAuODg2MiAxNy40MDY5IDExLjUxMjIgMTcuMDU3NCAxMi41NTA2QzE2LjY1NDEgMTMuNzQ4OSAxNi40NzczIDE0Ljc0MyAxNi4wMTYyIDE2LjQ5MjVMOS4xMTIxIDQ4LjE5NUM4LjY2MjExIDUwLjI2MTEgOC4zMTExNiA1Mi4wMzE4IDguMjYyODkgNTMuNjU2MUM4LjIxNjIgNTUuMjI3NyA4LjQ2ODM4IDU2LjM2MDYgOC45OTQxNyA1Ny4yNDUxQzExLjYwNTggNjEuNjM4MSAxOC41NjUgNjUuMzQ0OSAyNS44NTMgNjUuNjUyOEMyOS4zNzE1IDY1LjgwMTQgMzIuNTcyNCA2NS4xMjMyIDM1LjA0MTYgNjMuNjYwMkMzNy4wODI1IDYyLjQ1MSAzOC43NzUzIDYwLjYyMzIgMzkuODA3OCA1Ny45MDMyQzM2LjcyMzIgNTQuMzQ2NSAzNC43MDkgNDkuOTYzNSAzNC43MDkgNDQuNzg3QzM0LjcwOSA0Mi40ODYxIDM2LjU1NzQgNDAuNjIwOCAzOC44Mzc2IDQwLjYyMDhDNDEuMTE3OCA0MC42MjA4IDQyLjk2NjMgNDIuNDg2MSA0Mi45NjYzIDQ0Ljc4N0M0Mi45NjYzIDQ5LjM2MDMgNDUuOTEyNCA1My41NDg0IDUxLjQ3MDUgNTYuODE3NEM1Ni45OTEgNjAuMDY0MSA2NC4zOTU4IDYxLjkyMDkgNzEuNDAxMSA2MS45MjA5QzczLjY4MTMgNjEuOTIwOSA3NS41Mjk3IDYzLjc4NjIgNzUuNTI5NyA2Ni4wODcxVjc5LjY3OTNDNzUuNTI5NiA4MS45ODAxIDczLjY4MTIgODMuODQ1NSA3MS40MDExIDgzLjg0NTVDNjkuMTIxIDgzLjg0NTUgNjcuMjcyNiA4MS45ODAxIDY3LjI3MjUgNzkuNjc5M1Y3MC4wNzY5QzYwLjI1NyA2OS40ODg5IDUzLjEwOTkgNjcuNDI2MSA0Ny4zMTIxIDY0LjAxNjJDNDYuOTkwMiA2My44MjY4IDQ2LjY3MDggNjMuNjMyMiA0Ni4zNTQ2IDYzLjQzMjRDNDQuNjEzNCA2Ni42NDY4IDQyLjE0ODMgNjkuMTEyMiAzOS4yMjIyIDcwLjg0NTlDMzUuMDY0NSA3My4zMDkxIDMwLjE5NTkgNzQuMTc2MSAyNS41MDc3IDczLjk3ODJDMTYuMzgyMyA3My41OTI3IDYuMzc3NSA2OS4wNDA4IDEuOTEzMTggNjEuNTMxM0MwLjMxMTg3NiA1OC44Mzc3IC0wLjA2NjkxMyA1NS45NjQyIDAuMDA5MTI3OTcgNTMuNDA1OEMwLjA4MzYzNTEgNTAuOSAwLjYwOTcyNSA0OC40MTU2IDEuMDQ3MzQgNDYuNDA2M0w3Ljk2OTA2IDE0LjYyNTFMOC4wMTM0MSAxNC40NDFDOC4zMDU1NyAxMy4zNDA3IDguNzIzODYgMTEuNDAxMSA5LjIzOTExIDkuODcwNEM5LjgxNjE4IDguMTU2MDggMTAuNzEyMyA2LjIyNTkzIDEyLjM3NzQgNC41NDU2M0MxNS4yNjE1IDEuNjM1MjUgMTkuMTczMSA0LjIwOTA5ZS0wNSAyMy4yNTE5IDBIMzQuNTAyNFoiIGZpbGw9IiNGRkZGRkYiLz4KPHBhdGggZD0iTTcxLjAyMSA0NC40MjY1QzczLjI4NTYgNDQuNDI2NiA3NS4xMjE0IDQ2LjI5MTkgNzUuMTIxNCA0OC41OTI3Qzc1LjEyMTQgNTAuODkzNiA3My4yODU2IDUyLjc1ODkgNzEuMDIxIDUyLjc1OUg3MC45NjQ1QzY4LjcgNTIuNzU4OCA2Ni44NjQxIDUwLjg5MzYgNjYuODY0MSA0OC41OTI3QzY2Ljg2NDIgNDYuMjkyIDY4LjcgNDQuNDI2NyA3MC45NjQ1IDQ0LjQyNjVINzEuMDIxWiIgZmlsbD0iI0ZGRkZGRiIvPgo8L3N2Zz4K" alt="Guardian" style="height:28px;margin-right:12px;"> Guardian Billing Suite</div>
+  <button class="nav-tab active" onclick="showPage('flow',this)">Automation Flow</button>
+  <button class="nav-tab" onclick="showPage('selector',this)">Code Selector</button>
+  <button class="nav-tab" onclick="showPage('census',this)">Patient Census</button>
+</nav>
+
+<!-- LOADING OVERLAY -->
+<div class="overlay" id="overlay">
+  <div class="spinner"></div>
+  <div class="overlay-label">Analyzing Patient Census</div>
+  <div class="overlay-sub">Calculating optimal billing paths...</div>
+</div>
+
+<!-- BILLING NOTE MODAL -->
+<div class="modal-backdrop" id="noteModal">
+  <div class="modal">
+    <div class="modal-header">
+      <div class="modal-header-left">
+        <div class="modal-eyebrow">Care Management Billing Note</div>
+        <div class="modal-title" id="modalPatientName">—</div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 1: AUTOMATION FLOW
+═══════════════════════════════════════════ -->
+<div class="page active" id="page-flow">
+  <div class="page-header">
+    <div class="eyebrow">Process Overview</div>
+    <h1>Guardian Billing Automation Flow</h1>
+    <div class="sub">End-to-end process for identifying, analyzing, and generating billing codes for a practice's patient census.</div>
+  </div>
+
+  <div class="flow-wrap">
+
+    <div class="flow-step">
+      <div class="flow-step-left"><div class="step-num">1</div><div class="step-line"></div></div>
+      <div class="flow-card">
+        <div class="flow-card-header">
+          <span class="flow-card-tag tag-input">Input</span>
+        </div>
+        <h3>Patient Census Import</h3>
+        <p>The practice's active patient list is loaded into the system. Each patient record includes demographics, active diagnoses, insurance status (Medicare / QMB), current enrollment in home health or hospice agencies, and consent documentation for care management programs.</p>
+        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;">
+          <div style="background:var(--bg);border-radius:6px;padding:10px;border:1px solid var(--rule);font-size:0.6rem;color:var(--muted);">Patient demographics<br><span style="color:var(--ink);font-weight:600;">Name · DOB · MBI</span></div>
+          <div style="background:var(--bg);border-radius:6px;padding:10px;border:1px solid var(--rule);font-size:0.6rem;color:var(--muted);">Active diagnoses<br><span style="color:var(--ink);font-weight:600;">ICD-10 · chronic count</span></div>
+          <div style="background:var(--bg);border-radius:6px;padding:10px;border:1px solid var(--rule);font-size:0.6rem;color:var(--muted);">Enrollment status<br><span style="color:var(--ink);font-weight:600;">HH · Hospice · QMB</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-step-left"><div class="step-num">2</div><div class="step-line"></div></div>
+      <div class="flow-card">
+        <div class="flow-card-header">
+          <span class="flow-card-tag tag-check">Eligibility Check</span>
+        </div>
+        <h3>Program Eligibility Screening</h3>
+        <p>Every patient is evaluated against all applicable programs simultaneously. Home health or hospice enrollment does not lock a patient into a single path. Each eligible program is calculated independently, and the highest-value combination is selected. Concurrent billing conflicts are enforced, but profitability always drives the final recommendation.</p>
+        <div class="flow-branches">
+          <div class="flow-branch fb-apcm"><h4>APCM Eligible</h4><p>Any Medicare patient. Depending on chronic condition count and QMB status. No time requirement. Requires population health management platform.</p></div>
+          <div class="flow-branch fb-ccm"><h4>CCM Eligible</h4><p>2+ chronic conditions. Routes to staff track (99490) or provider track (99491) based on who documents time. Compared against APCM for best value.</p></div>
+          <div class="flow-branch fb-hho"><h4>Home Health Oversight</h4><p>Active HH enrollment adds cert/recert codes plus monthly supervision if physician time ≥30 min. Evaluated alongside and compared to APCM/CCM.</p></div>
+          <div class="flow-branch fb-hospice"><h4>Hospice Oversight</h4><p>Active hospice enrollment adds the hospice oversight code if physician time ≥30 min. Still compared against APCM/CCM. The highest value wins.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-step-left"><div class="step-num">3</div><div class="step-line"></div></div>
+      <div class="flow-card">
+        <div class="flow-card-header">
+          <span class="flow-card-tag tag-time">Time Review</span>
+        </div>
+        <h3>Time Spent Verification</h3>
+        <p>For each eligible patient, the system pulls documented time from the EHR, split by provider time (physician/NP personally performed) and clinical staff time (supervised by physician). These are counted separately and never pooled, as they drive different billing tracks. Home health oversight time is tracked independently as physician supervision minutes.</p>
+        <div style="margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+          <div style="background:rgba(26,58,92,0.05);border:1.5px solid rgba(26,58,92,0.2);border-radius:8px;padding:12px;">
+            <div style="font-size:0.62rem;font-weight:700;color:var(--ccm);margin-bottom:4px;">Provider Time (drMin)</div>
+            <div style="font-size:0.59rem;color:var(--muted);line-height:1.6;">Personally performed by physician or NP/PA. Qualifies for 99491 (≥30 min) and 99437 add-ons. Also used for G0181/G0182 oversight thresholds.</div>
+          </div>
+          <div style="background:rgba(44,95,46,0.05);border:1.5px solid rgba(44,95,46,0.2);border-radius:8px;padding:12px;">
+            <div style="font-size:0.62rem;font-weight:700;color:var(--apcm);margin-bottom:4px;">Staff Time (staffMin)</div>
+            <div style="font-size:0.59rem;color:var(--muted);line-height:1.6;">Performed by clinical staff under physician supervision. Qualifies for 99490 (≥20 min) and 99439 add-ons. Cannot be counted toward provider-track codes.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-step-left"><div class="step-num">4</div><div class="step-line"></div></div>
+      <div class="flow-card">
+        <div class="flow-card-header">
+          <span class="flow-card-tag tag-algo">Algorithm</span>
+        </div>
+        <h3>Optimal Code Calculation</h3>
+        <p>Every patient is run through all eligible programs regardless of home health or hospice enrollment. HHO and hospice oversight codes are calculated and added where applicable, then compared against APCM and CCM to determine the highest-value billable combination. A QMB patient on home health, for example, may yield more under APCM G0558 than under HHO — the algorithm finds it either way.</p>
+        <div style="margin-top:14px;background:var(--ink);border-radius:8px;padding:14px 16px;font-size:0.62rem;color:rgba(255,255,255,0.7);line-height:2;">
+          <span style="color:rgba(255,255,255,0.35)">calculate</span> HHO value (if enrolled) + Hospice Oversight value (if enrolled)&nbsp;&nbsp;<span style="color:rgba(255,255,255,0.25)">|</span>&nbsp;&nbsp;<span style="color:rgba(255,255,255,0.35)">calculate</span> max(APCM, CCM_staff, CCM_provider)&nbsp;&nbsp;<span style="color:rgba(255,255,255,0.25)">|</span>&nbsp;&nbsp;<span style="color:rgba(255,255,255,0.35)">bill</span> highest compliant combination
+        </div>
+      </div>
+    </div>
+
+    <div class="flow-step">
+      <div class="flow-step-left"><div class="step-num">5</div><div class="step-line"></div></div>
+      <div class="flow-card">
+        <div class="flow-card-header">
+          <span class="flow-card-tag tag-output">Output</span>
+        </div>
+        <h3>Billing Notes &amp; Code Generation</h3>
+        <p>For each patient, the system generates a structured billing note formatted to CMS documentation standards — including consent verification, active conditions, time log, care coordination activities, and the attached billing codes. Notes are ready for EHR import or direct claim submission.</p>
+        <div class="flow-output-grid">
+          <div class="flow-output"><h4>Billing Code List</h4><p>Patient-level code assignments with reimbursement amounts, ready for claim submission.</p></div>
+          <div class="flow-output"><h4>EHR Billing Note</h4><p>Structured care management note per patient with all required CMS documentation elements.</p></div>
+          <div class="flow-output"><h4>Revenue Summary</h4><p>Total estimated monthly reimbursement across the census with program distribution breakdown.</p></div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div style="max-width:860px;margin:32px auto 0;">
+    <div class="flow-legend">
+      <strong>Key Billing Rules Enforced by the Algorithm</strong>
+      APCM (G0556/G0557/G0558) and CCM (99490–99437) are mutually exclusive in the same calendar month. Staff-track CCM (99490/99439) and provider-track CCM (99491/99437) cannot be billed together. Home Health Oversight and Hospice Oversight cannot be billed together. HHO excludes APCM and CCM; Hospice Oversight excludes APCM and CCM — but in all cases, the algorithm evaluates every eligible program and selects the highest-value compliant combination before applying exclusions. Rates reflect 2025 Medicare Physician Fee Schedule national averages.
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 2: CODE SELECTOR
+═══════════════════════════════════════════ -->
+<div class="page" id="page-selector">
+  <div class="page-header">
+    <div class="eyebrow">Program Reference</div>
+    <h1>Code Selector &amp; Calculator</h1>
+    <div class="sub">Select programs to compare codes and estimate monthly reimbursement. Concurrent billing conflicts are enforced automatically.</div>
+  </div>
+
+  <div class="conflict-bar" id="conflictBar"></div>
+
+  <div class="programs-grid">
+    <div class="program-panel" id="panel-apcm" style="--panel-color:var(--apcm);" data-program="apcm">
+      <div class="panel-header" onclick="toggleProgram('apcm')">
+        <div><div class="prog-id">APCM</div><div class="prog-name">Advanced Primary Care Management</div></div>
+        <div class="toggle-btn"></div>
+      </div>
+      <div class="code-list">
+        <div class="code-row" data-code="G0556" data-rate="15.20" data-desc="0–1 chronic conditions" onclick="toggleCode(this,'apcm')"><div class="code-check"></div><div class="code-info"><div class="code-id">G0556 — Level 1</div><div class="code-desc">0–1 chronic conditions</div><div class="code-time">No time requirement</div></div><div class="code-rate">$15.20</div></div>
+        <div class="code-row" data-code="G0557" data-rate="48.84" data-desc="2+ chronic conditions" onclick="toggleCode(this,'apcm')"><div class="code-check"></div><div class="code-info"><div class="code-id">G0557 — Level 2</div><div class="code-desc">2+ chronic conditions</div><div class="code-time">No time requirement</div></div><div class="code-rate">$48.84</div></div>
+        <div class="code-row" data-code="G0558" data-rate="107.07" data-desc="QMB + 2+ chronic conditions" onclick="toggleCode(this,'apcm')"><div class="code-check"></div><div class="code-info"><div class="code-id">G0558 — Level 3</div><div class="code-desc">Qualified Medicare Beneficiary, 2+ chronic conditions</div><div class="code-time">No time requirement</div></div><div class="code-rate">$107.07</div></div>
+      </div>
+      <div class="panel-note">One level per patient per month. Cannot be billed with CCM, HHO, or Hospice.</div>
+    </div>
+
+    <div class="program-panel" id="panel-ccm" style="--panel-color:var(--ccm);" data-program="ccm">
+      <div class="panel-header" onclick="toggleProgram('ccm')">
+        <div><div class="prog-id">CCM</div><div class="prog-name">Chronic Care Management</div></div>
+        <div class="toggle-btn"></div>
+      </div>
+      <div class="code-list">
+        <div class="code-row" data-code="99490" data-rate="60.49" data-desc="Non-complex, staff base 20 min" onclick="toggleCode(this,'ccm')"><div class="code-check"></div><div class="code-info"><div class="code-id">99490 — Staff Base</div><div class="code-desc">Clinical staff supervised by physician</div><div class="code-time">Min. 20 min staff/month</div></div><div class="code-rate">$60.49</div></div>
+        <div class="code-row" data-code="99439" data-rate="45.93" data-desc="Non-complex, staff add-on +20 min" onclick="toggleCode(this,'ccm')"><div class="code-check"></div><div class="code-info"><div class="code-id">99439 — Staff Add-on</div><div class="code-desc">Add-on to 99490, each +20 min staff time (max ×2)</div><div class="code-time">+20 min staff per unit</div></div><div class="code-rate">$45.93</div></div>
+        <div class="code-row" data-code="99491" data-rate="82.16" data-desc="Non-complex, provider base 30 min" onclick="toggleCode(this,'ccm')"><div class="code-check"></div><div class="code-info"><div class="code-id">99491 — Provider Base</div><div class="code-desc">Personally by physician/NP — mutually exclusive with 99490</div><div class="code-time">Min. 30 min provider/month</div></div><div class="code-rate">$82.16</div></div>
+        <div class="code-row" data-code="99437" data-rate="57.58" data-desc="Non-complex, provider add-on +30 min" onclick="toggleCode(this,'ccm')"><div class="code-check"></div><div class="code-info"><div class="code-id">99437 — Provider Add-on</div><div class="code-desc">Add-on to 99491, each +30 min provider time (max ×2)</div><div class="code-time">+30 min provider per unit</div></div><div class="code-rate">$57.58</div></div>
+      </div>
+      <div class="panel-note">Staff track (99490/99439) and provider track (99491/99437) are mutually exclusive. Cannot be billed with APCM, HHO, or Hospice.</div>
+    </div>
+
+    <div class="program-panel" id="panel-hho" style="--panel-color:var(--hho);" data-program="hho">
+      <div class="panel-header" onclick="toggleProgram('hho')">
+        <div><div class="prog-id">HHO</div><div class="prog-name">Home Health Oversight</div></div>
+        <div class="toggle-btn"></div>
+      </div>
+      <div class="code-list">
+        <div class="code-row" data-code="G0180" data-rate="53.48" data-desc="Initial HH certification" onclick="toggleCode(this,'hho')"><div class="code-check"></div><div class="code-info"><div class="code-id">G0180 — Initial Cert</div><div class="code-desc">First cert, not receiving HH in ≥60 days</div><div class="code-time">Per new episode</div></div><div class="code-rate">$53.48</div></div>
+        <div class="code-row" data-code="G0181" data-rate="106.24" data-desc="Monthly HH supervision ≥30 min" onclick="toggleCode(this,'hho')"><div class="code-check"></div><div class="code-info"><div class="code-id">G0181 — Ongoing Supervision</div><div class="code-desc">Monthly physician oversight — can stack with G0180/G0179</div><div class="code-time">Min. 30 min physician/month</div></div><div class="code-rate">$106.24</div></div>
+        <div class="code-row" data-code="G0179" data-rate="41.40" data-desc="Recertification every 60 days" onclick="toggleCode(this,'hho')"><div class="code-check"></div><div class="code-info"><div class="code-id">G0179 — Recertification</div><div class="code-desc">Recert after initial 60-day episode — can stack with G0181</div><div class="code-time">Every 60 days</div></div><div class="code-rate">$41.40</div></div>
+      </div>
+      <div class="panel-note">G0180/G0179 and G0181 can be billed in the same month. Cannot be billed with APCM, CCM, or Hospice.</div>
+    </div>
+
+    <div class="program-panel" id="panel-hospice" style="--panel-color:var(--hospice);" data-program="hospice">
+      <div class="panel-header" onclick="toggleProgram('hospice')">
+        <div><div class="prog-id">Hospice</div><div class="prog-name">Hospice Care Oversight</div></div>
+        <div class="toggle-btn"></div>
+      </div>
+      <div class="code-list">
+        <div class="code-row" data-code="G0182" data-rate="106.24" data-desc="Hospice care supervision ≥30 min" onclick="toggleCode(this,'hospice')"><div class="code-check"></div><div class="code-info"><div class="code-id">G0182 — Hospice Supervision</div><div class="code-desc">Physician oversight, Medicare-approved hospice agency</div><div class="code-time">Min. 30 min physician/month</div></div><div class="code-rate">$106.24</div></div>
+      </div>
+      <div class="panel-note">Cannot be billed with APCM, CCM, or HHO in the same month.</div>
+    </div>
+  </div>
+
+  <div class="calc-section">
+    <div class="selected-codes-panel">
+      <div class="section-head">
+        <div><span class="eyebrow">Active Billing</span>Selected Codes</div>
+        <span style="font-size:0.6rem;color:var(--muted);font-family:'JetBrains Mono';font-weight:400;" id="codeCount">0 codes</span>
+      </div>
+      <div id="selected-list"><div class="empty-state" id="emptyState">No programs selected.<br>Activate a program above to begin.</div></div>
+      <div class="patient-block">
+        <span class="patient-label">Patient Count</span>
+        <input type="number" class="patient-input" id="patientCount" value="1" min="1" max="9999" oninput="updateCalc()">
+        <span style="font-size:0.58rem;color:var(--muted);flex:1;">patients enrolled this month</span>
+      </div>
+    </div>
+    <div class="totals-panel">
+      <div class="totals-head"><span class="eyebrow2">Estimated Reimbursement</span><div class="ttitle">Monthly Summary</div></div>
+      <div class="totals-body" id="totalsBody"><div style="font-size:0.6rem;color:rgba(255,255,255,0.35);padding:8px 0;">Select codes to calculate.</div></div>
+      <div class="grand-total">
+        <div class="grand-label">Est. Monthly Revenue</div>
+        <div class="grand-amount" id="grandTotal">$0.00</div>
+        <div class="grand-sub" id="grandPerPatient">Per patient / month: $0.00</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="exclusion-legend">
+    <strong>Concurrent Billing Restrictions — Same Calendar Month</strong>
+    <div class="rule-row"><div class="rule-dot"></div>APCM cannot be billed with CCM, Home Health Oversight, or Hospice Oversight.</div>
+    <div class="rule-row"><div class="rule-dot"></div>CCM staff track (99490/99439) and provider track (99491/99437) are mutually exclusive — cannot be mixed in same month.</div>
+    <div class="rule-row"><div class="rule-dot"></div>Home Health Oversight cannot be billed with APCM, CCM, or Hospice. G0180/G0179 and G0181 can stack in the same month.</div>
+    <div class="rule-row"><div class="rule-dot"></div>Hospice Oversight cannot be billed with APCM, CCM, or HHO.</div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     PAGE 3: CENSUS
+═══════════════════════════════════════════ -->
+<div class="page" id="page-census">
+  <div class="page-header">
+    <div class="eyebrow">Patient Census</div>
+    <h1>Billing Optimization Analysis</h1>
+    <div class="sub">Review patient profiles. Click Analyze to calculate optimal billing. After analysis, click any patient row to view the generated billing note. <br>All data shown is for demonstration purposes only.</div>
+  </div>
+
+  <div class="analysis-banner" id="analysisBanner">
+    <div class="banner-stat"><div class="bval" id="bnPatients">—</div><div class="blabel">Patients</div></div>
+    <div class="banner-divider"></div>
+    <div class="banner-stat"><div class="bval" id="bnApcm">—</div><div class="blabel">APCM</div></div>
+    <div class="banner-stat"><div class="bval" id="bnCcm">—</div><div class="blabel">CCM</div></div>
+    <div class="banner-stat"><div class="bval" id="bnHho">—</div><div class="blabel">HHO/Hospice</div></div>
+    <div class="banner-divider"></div>
+    <div class="banner-stat"><div class="bval" id="bnTotal">—</div><div class="blabel">Est. Monthly</div></div>
+  </div>
+
+  <div class="census-toolbar">
+    <div class="census-summary">Showing <span id="censusCount">12</span> patients — <span id="censusHint">click Analyze to begin</span></div>
+    <button class="analyze-btn" id="analyzeBtn" onclick="runAnalysis()">Analyze Census</button>
+  </div>
+
+  <div class="census-table-wrap">
+    <table class="census-table" id="censusTable">
+      <thead>
+        <tr>
+          <th>Patient</th>
+          <th>Chronic Conditions</th>
+          <th>HH / Hospice</th>
+          <th>New Episode</th>
+          <th>Dr. Min</th>
+          <th>Staff Min</th>
+          <th>QMB</th>
+          <th style="min-width:260px;">Recommended Billing</th>
+        </tr>
+      </thead>
+      <tbody id="censusBody"></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+// ─────────────────────────────────────────────
+// SHARED CONSTANTS
+// ─────────────────────────────────────────────
+const RATES = {
+  G0556:15.20,G0557:48.84,G0558:107.07,
+  '99490':60.49,'99439':45.93,'99491':82.16,'99437':57.58,
+  G0180:53.48,G0181:106.24,G0179:41.40,G0182:106.24
+};
+const CODE_DESC = {
+  G0556:'APCM Level 1 — 0–1 chronic conditions',G0557:'APCM Level 2 — 2+ chronic conditions',G0558:'APCM Level 3 — QMB + 2+ chronic conditions',
+  '99490':'CCM staff base (≥20 min clinical staff)',
+  '99439':'CCM staff add-on (+20 min clinical staff)',
+  '99491':'CCM provider base (≥30 min physician/NP)',
+  '99437':'CCM provider add-on (+30 min physician/NP)',
+  G0180:'HH initial certification',G0179:'HH recertification (60-day)',
+  G0181:'HH monthly supervision (≥30 min physician)',G0182:'Hospice supervision (≥30 min physician)'
+};
+const today = new Date();
+const fmtDate = d => d.toLocaleDateString('en-US',{month:'2-digit',day:'2-digit',year:'numeric'});
+const serviceMonth = today.toLocaleDateString('en-US',{month:'long',year:'numeric'});
+
+// ─────────────────────────────────────────────
+// NAV
+// ─────────────────────────────────────────────
+function showPage(id,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  if(btn) btn.classList.add('active');
+}
+
+// ─────────────────────────────────────────────
+// CODE SELECTOR
+// ─────────────────────────────────────────────
+const EXCLUSIONS={apcm:['ccm','hho','hospice'],ccm:['apcm','hho','hospice'],hho:['apcm','ccm','hospice'],hospice:['apcm','ccm','hho']};
+const activePrograms=new Set();
+const selectedCodes={};
+function toggleProgram(prog){
+  if(activePrograms.has(prog)){
+    activePrograms.delete(prog);
+    Object.keys(selectedCodes).forEach(c=>{if(selectedCodes[c].program===prog)delete selectedCodes[c];});
+    document.querySelectorAll(`#panel-${prog} .code-row`).forEach(r=>r.classList.remove('selected'));
+  } else { activePrograms.add(prog); }
+  applyState(); updateCalc();
+}
+function toggleCode(row,prog){
+  if(!activePrograms.has(prog))return;
+  const code=row.dataset.code,rate=parseFloat(row.dataset.rate),desc=row.dataset.desc;
+  if(row.classList.contains('selected')){row.classList.remove('selected');delete selectedCodes[code];}
+  else{row.classList.add('selected');selectedCodes[code]={rate,desc,program:prog};}
+  updateCalc();
+}
+function applyState(){
+  document.querySelectorAll('.program-panel').forEach(p=>{
+    const prog=p.dataset.program;
+    p.classList.toggle('active',activePrograms.has(prog));
+  });
+  const grayed=new Set();
+  activePrograms.forEach(prog=>(EXCLUSIONS[prog]||[]).forEach(ex=>grayed.add(ex)));
+  document.querySelectorAll('.program-panel').forEach(p=>{
+    const prog=p.dataset.program;
+    p.classList.toggle('grayed',!activePrograms.has(prog)&&grayed.has(prog));
+  });
+  const bar=document.getElementById('conflictBar');
+  if(grayed.size>0&&activePrograms.size>0){
+    const names={apcm:'APCM',ccm:'CCM',hho:'HHO',hospice:'Hospice'};
+    bar.textContent=`Concurrent billing restriction: ${[...grayed].map(g=>names[g]).join(', ')} cannot be billed in the same calendar month as the selected program(s).`;
+    bar.classList.add('visible');
+  } else {bar.classList.remove('visible');}
+}
+function updateCalc(){
+  const pt=Math.max(1,parseInt(document.getElementById('patientCount').value)||1);
+  const codes=Object.entries(selectedCodes);
+  document.getElementById('codeCount').textContent=codes.length+(codes.length===1?' code':' codes');
+  const listEl=document.getElementById('selected-list');
+  const emptyEl=document.getElementById('emptyState');
+  listEl.querySelectorAll('.selected-item').forEach(el=>el.remove());
+  if(codes.length===0){emptyEl.style.display='block';}
+  else{
+    emptyEl.style.display='none';
+    const pc={apcm:'var(--apcm)',ccm:'var(--ccm)',hho:'var(--hho)',hospice:'var(--hospice)'};
+    codes.forEach(([code,{rate,desc,program}])=>{
+      const item=document.createElement('div');item.className='selected-item';
+      item.innerHTML=`<div><div class="sel-code" style="color:${pc[program]}">${code}</div><div class="sel-desc">${desc}</div></div><div style="font-size:0.72rem;font-weight:600;">$${rate.toFixed(2)}</div>`;
+      listEl.appendChild(item);
+    });
+  }
+  const perPt=codes.reduce((s,[,{rate}])=>s+rate,0);
+  const total=perPt*pt;
+  document.getElementById('grandPerPatient').textContent=`Per patient / month: $${perPt.toFixed(2)}`;
+  document.getElementById('grandTotal').textContent='$'+total.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const tb=document.getElementById('totalsBody');tb.innerHTML='';
+  if(codes.length===0){tb.innerHTML='<div style="font-size:0.6rem;color:rgba(255,255,255,0.35);padding:8px 0;">Select codes to calculate.</div>';return;}
+  codes.forEach(([code,{rate}])=>{
+    const row=document.createElement('div');row.className='total-row';
+    row.innerHTML=`<span class="tlabel">${code}</span><span class="val">$${rate.toFixed(2)}</span>`;
+    tb.appendChild(row);
+  });
+  if(pt>1){
+    const sr=document.createElement('div');sr.className='total-row';
+    sr.innerHTML=`<span class="tlabel">Subtotal / patient</span><span class="val">$${perPt.toFixed(2)}</span>`;tb.appendChild(sr);
+    const pr=document.createElement('div');pr.className='total-row';
+    pr.innerHTML=`<span class="tlabel">× ${pt.toLocaleString()} patients</span><span class="val">$${total.toLocaleString('en-US',{minimumFractionDigits:2})}</span>`;tb.appendChild(pr);
+  }
+  const annual=total*12;
+  const ar=document.createElement('div');ar.className='total-row';ar.style.cssText='border-top:1px solid rgba(255,255,255,0.12);margin-top:6px;padding-top:10px;';
+  ar.innerHTML=`<span class="tlabel" style="color:rgba(255,255,255,0.4)">Annual projection</span><span class="val" style="color:rgba(255,255,255,0.7)">$${annual.toLocaleString('en-US',{minimumFractionDigits:2})}</span>`;
+  tb.appendChild(ar);
+}
+
+// ─────────────────────────────────────────────
+// PATIENT DATA
+// ─────────────────────────────────────────────
+const PATIENTS=[
+  {name:'Margaret Tillman',  dob:'04/12/1948',mbi:'1EG4-TE5-MK72', dx:['CHF','Type 2 Diabetes','CKD Stage 3'],          homeHealth:true, isNewEpisode:false,hospice:false,drMin:32,staffMin:18,qmb:false},
+  {name:'Robert Okafor',     dob:'07/29/1951',mbi:'2TY8-AB3-PL90', dx:['COPD','Hypertension'],                           homeHealth:true, isNewEpisode:true, hospice:false,drMin:10,staffMin:35,qmb:false},
+  {name:'Susan Whitmore',    dob:'11/03/1955',mbi:'3MK2-ZX7-NR14', dx:['Atrial Fibrillation','Osteoporosis','Depression'],homeHealth:false,isNewEpisode:false,hospice:false,drMin:35,staffMin:50,qmb:false},
+  {name:'James Delacroix',   dob:'02/18/1943',mbi:'4QR5-WE9-JB33', dx:['Type 2 Diabetes'],                               homeHealth:false,isNewEpisode:false,hospice:false,drMin:0, staffMin:0, qmb:false},
+  {name:'Patricia Nguyen',   dob:'09/05/1950',mbi:'5LK1-DF4-XC88', dx:['CHF','COPD','Dementia'],                         homeHealth:false,isNewEpisode:false,hospice:false,drMin:0, staffMin:22,qmb:true },
+  {name:'Harold Brennan',    dob:'06/14/1946',mbi:'6PO9-GH2-VM57', dx:['CKD Stage 4','Hypertension','Anemia'],            homeHealth:false,isNewEpisode:false,hospice:false,drMin:0, staffMin:55,qmb:false},
+  {name:'Dorothy Castellano',dob:'03/22/1939',mbi:'7NM3-BV6-KQ21', dx:['Terminal Lung Cancer'],                          homeHealth:false,isNewEpisode:false,hospice:true, drMin:32,staffMin:0, qmb:false},
+  {name:'William Osei',      dob:'12/07/1952',mbi:'8TR6-CX1-OL44', dx:['Type 2 Diabetes','Hypertension'],                homeHealth:true, isNewEpisode:false,hospice:false,drMin:18,staffMin:14,qmb:false},
+  {name:'Gloria Ivanova',    dob:'05/30/1948',mbi:'9YU4-HN8-FP65', dx:['CHF','CKD Stage 3','Peripheral Artery Disease'], homeHealth:false,isNewEpisode:false,hospice:false,drMin:62,staffMin:28,qmb:true },
+  {name:'Thomas Farrell',    dob:'08/16/1944',mbi:'1AB7-SQ5-DW39', dx:['COPD','Osteoarthritis','Type 2 Diabetes'],       homeHealth:false,isNewEpisode:false,hospice:false,drMin:0, staffMin:42,qmb:false},
+  {name:'Evelyn Marshburn',  dob:'01/24/1947',mbi:'2CD9-RL3-ET82', dx:['Alzheimers','CHF'],                              homeHealth:true, isNewEpisode:true, hospice:false,drMin:38,staffMin:28,qmb:true },
+  {name:'Carl Pendleton',    dob:'10/11/1953',mbi:'3FG2-YM7-HS16', dx:['Hypertension','Type 2 Diabetes','GERD'],         homeHealth:false,isNewEpisode:false,hospice:false,drMin:0, staffMin:8, qmb:false},
+];
+
+// ─────────────────────────────────────────────
+// BILLING ENGINE
+// ─────────────────────────────────────────────
+function calcCCMOptions(p){
+  if(p.dx.length<2)return null;
+  let staffCodes=[],staffAmount=0,providerCodes=[],providerAmount=0;
+  if(p.staffMin>=20){
+    staffCodes.push('99490');staffAmount+=RATES['99490'];
+    const x=Math.min(2,Math.floor((p.staffMin-20)/20));
+    for(let i=0;i<x;i++){staffCodes.push('99439');staffAmount+=RATES['99439'];}
+  }
+  if(p.drMin>=30){
+    providerCodes.push('99491');providerAmount+=RATES['99491'];
+    const x=Math.min(2,Math.floor((p.drMin-30)/30));
+    for(let i=0;i<x;i++){providerCodes.push('99437');providerAmount+=RATES['99437'];}
+  }
+  if(!staffAmount&&!providerAmount)return null;
+  if(providerAmount>=staffAmount&&providerAmount>0){
+    const addOns=providerCodes.filter(c=>c==='99437').length;
+    return{codes:providerCodes,amount:providerAmount,track:'Provider',
+      reason:`Provider track: ${p.drMin} min physician/NP time. 99491 base (≥30 min)${addOns>0?` + ${addOns}× 99437 add-on`:''}. Staff time counted separately.`};
+  }
+  const addOns=staffCodes.filter(c=>c==='99439').length;
+  return{codes:staffCodes,amount:staffAmount,track:'Staff',
+    reason:`Staff track: ${p.staffMin} min clinical staff time under supervision. 99490 base (≥20 min)${addOns>0?` + ${addOns}× 99439 add-on`:''}. Provider time counted separately.`};
+}
+function calcAPCM(p){
+  const c=p.dx.length;
+  if(p.qmb&&c>=2)return{code:'G0558',amount:RATES.G0558,reason:`QMB + ${c} chronic conditions → G0558 Level 3. No time requirement.`};
+  if(c>=2)        return{code:'G0557',amount:RATES.G0557,reason:`${c} chronic conditions → G0557 Level 2. No time requirement.`};
+  return           {code:'G0556',amount:RATES.G0556,reason:`${c} chronic condition(s) → G0556 Level 1. No time requirement.`};
+}
+function analyzePatient(p){
+  if(p.hospice){
+    const ok=p.drMin>=30;
+    return{program:'Hospice Care Oversight',codes:ok?['G0182']:[],amount:ok?RATES.G0182:0,
+      reasoning:ok?`G0182: ${p.drMin} min physician supervision (≥30 min). Medicare-approved hospice. CCM/APCM/HHO excluded.`:`G0182 not billable — ${p.drMin} min documented, ≥30 min required.`,
+      badge:'hospice',warning:!ok?'Insufficient physician time for G0182.':null};
+  }
+  if(p.homeHealth){
+    const hhoCodes=[],certCode=p.isNewEpisode?'G0180':'G0179',certRate=p.isNewEpisode?RATES.G0180:RATES.G0179;
+    let hhoAmount=0,certNote='',supNote='';
+    hhoCodes.push(certCode);hhoAmount+=certRate;
+    certNote=`${certCode} (${p.isNewEpisode?'initial certification, new episode':'recertification, 60-day episode'}) billed at $${certRate.toFixed(2)}.`;
+    if(p.drMin>=30){
+      hhoCodes.push('G0181');hhoAmount+=RATES.G0181;
+      supNote=` G0181 monthly supervision billed ($${RATES.G0181.toFixed(2)}) — ${p.drMin} min physician oversight (≥30 min). Both codes billable same month.`;
+    } else {
+      supNote=` G0181 not billable — only ${p.drMin} min physician time; ≥30 min required.`;
+    }
+    return{program:'Home Health Oversight',codes:hhoCodes,amount:hhoAmount,reasoning:certNote+supNote+' CCM and APCM excluded.',badge:'hho'};
+  }
+  const apcm=calcAPCM(p);
+  const ccm=calcCCMOptions(p);
+  if(!ccm){
+    const why=p.dx.length<2?`CCM requires ≥2 chronic conditions; patient has ${p.dx.length}.`:`CCM not billable: ${p.drMin} min provider (<30), ${p.staffMin} min staff (<20). Neither threshold met.`;
+    return{program:'APCM',codes:[apcm.code],amount:apcm.amount,reasoning:`${why} APCM is the only billable program. ${apcm.reason}`,badge:'apcm'};
+  }
+  if(ccm.amount>apcm.amount){
+    return{program:`CCM — ${ccm.track} Track`,codes:ccm.codes,amount:ccm.amount,reasoning:`CCM ($${ccm.amount.toFixed(2)}) > APCM ${apcm.code} ($${apcm.amount.toFixed(2)}). ${ccm.reason}`,badge:'ccm'};
+  }
+  return{program:'APCM',codes:[apcm.code],amount:apcm.amount,reasoning:`APCM ${apcm.code} ($${apcm.amount.toFixed(2)}) > CCM ${ccm.track} track ($${ccm.amount.toFixed(2)}). ${apcm.reason}`,badge:'apcm'};
+}
+
+// ─────────────────────────────────────────────
+// BILLING NOTE GENERATOR
+// ─────────────────────────────────────────────
+function generateTimeLog(p, result){
+  const lines=[];
+  const base=new Date(today);base.setDate(base.getDate()-6);
+  if(result.badge==='ccm'||result.badge==='apcm'){
+    if(p.staffMin>0){
+      lines.push({date:fmtDate(base),type:'Care Coordination',who:'Clinical Staff',desc:'Medication reconciliation, care plan review, patient follow-up call. Reviewed current medications and adherence. Coordinated with specialist for upcoming referral.',min:Math.min(p.staffMin,20)});
+      if(p.staffMin>20){const d2=new Date(base);d2.setDate(d2.getDate()+5);lines.push({date:fmtDate(d2),type:'Care Coordination',who:'Clinical Staff',desc:'Patient outreach call — reviewed symptom changes, scheduled follow-up appointments, communicated lab results.',min:p.staffMin-Math.min(p.staffMin,20)});}
+    }
+    if(p.drMin>0){const d3=new Date(base);d3.setDate(d3.getDate()+3);lines.push({date:fmtDate(d3),type:'CCM — Physician',who:'Physician',desc:'Reviewed patient status, assessed chronic condition management, updated care plan, reviewed specialist notes, adjusted medication regimen.',min:p.drMin});}
+  } else if(result.badge==='hho'){
+    if(p.drMin>0){lines.push({date:fmtDate(base),type:'HH Oversight',who:'Physician',desc:'Reviewed home health agency status reports, communicated with HH nursing staff, reviewed vital trends and functional status. Adjusted plan of care.',min:p.drMin});}
+    lines.push({date:fmtDate(today),type:'Certification',who:'Physician',desc:`Signed and certified home health plan of care. ${p.isNewEpisode?'Initial certification for new episode of care.':'Recertification for continued home health services.'}`,min:null});
+  } else if(result.badge==='hospice'){
+    if(p.drMin>0){lines.push({date:fmtDate(base),type:'Hospice Oversight',who:'Physician',desc:'Reviewed hospice care team reports, communicated with hospice nurse and social worker, reviewed symptom management plan, coordinated family communications.',min:p.drMin});}
+  }
+  return lines;
+}
+
+function generateNote(p, result){
+  const timeLog=generateTimeLog(p,result);
+  const totalMins=(timeLog.filter(l=>l.min).reduce((s,l)=>s+(l.min||0),0));
+  const programColor={apcm:'var(--apcm)',ccm:'var(--ccm)',hho:'var(--hho)',hospice:'var(--hospice)'}[result.badge];
+  const programLabel={apcm:'Advanced Primary Care Management (APCM)',ccm:'Chronic Care Management (CCM)',hho:'Home Health Care Plan Oversight (HHO)',hospice:'Hospice Care Plan Oversight'}[result.badge];
+
+  let carePlanSection='';
+  if(result.badge==='apcm'){
+    carePlanSection=`
+    <div class="ehr-section">
+      <div class="ehr-section-title">Care Plan Summary</div>
+      <div class="ehr-body-text">
+        Patient is enrolled in Advanced Primary Care Management (APCM) services. Consent obtained and documented. A comprehensive, patient-centered care plan is maintained in the certified EHR and has been reviewed this month. The practice serves as the continuing focal point for all primary care services and coordinates all needed healthcare services on behalf of this patient.
+        <br><br>
+        <strong>Active Chronic Conditions:</strong> ${p.dx.join('; ')}.${p.qmb?' Patient is a Qualified Medicare Beneficiary (QMB).':''}<br>
+        <strong>Care Elements Addressed This Period:</strong> Comprehensive assessment, medication management, preventive care gaps review, care coordination with specialists, patient education, 24/7 access to care confirmed.<br>
+        <strong>Patient Goals:</strong> Maintain functional independence, optimize chronic disease control, reduce acute exacerbation risk.<br>
+        <strong>Next Review:</strong> ${fmtDate(new Date(today.getFullYear(),today.getMonth()+1,1))}
+      </div>
+    </div>`;
+  } else if(result.badge==='ccm'){
+    const isProvider=result.codes.includes('99491');
+    carePlanSection=`
+    <div class="ehr-section">
+      <div class="ehr-section-title">Care Coordination Summary</div>
+      <div class="ehr-body-text">
+        Patient is enrolled in non-complex Chronic Care Management (CCM) services. Written/verbal consent documented. Comprehensive care plan is maintained and accessible to all treating providers.
+        <br><br>
+        <strong>Active Chronic Conditions:</strong> ${p.dx.join('; ')}. Patient has ${p.dx.length} qualifying chronic condition(s) expected to last ≥12 months, placing patient at significant risk of acute exacerbation or functional decline.<br>
+        <strong>Services Provided This Month:</strong> ${isProvider?'Physician personally performed care coordination including':'Clinical staff performed, under physician supervision:'} medication reconciliation, care plan review and update, coordination with home health or specialty care as appropriate, patient education on disease management, review of recent labs and diagnostic results.<br>
+        <strong>Care Track:</strong> ${isProvider?`Provider track — ${p.drMin} minutes personally provided by physician/NP/PA.`:`Staff track — ${p.staffMin} minutes provided by clinical staff under general physician supervision.`}<br>
+        <strong>24/7 Access:</strong> Confirmed available. Patient has been informed of after-hours access procedures.
+      </div>
+    </div>`;
+  } else if(result.badge==='hho'){
+    carePlanSection=`
+    <div class="ehr-section">
+      <div class="ehr-section-title">Home Health Care Plan Oversight</div>
+      <div class="ehr-body-text">
+        Patient is receiving Medicare-covered home health services under an established plan of care. Physician has reviewed status reports from the home health agency, communicated with the home health care team, and made revisions to the plan of care as clinically appropriate this month.
+        <br><br>
+        <strong>Active Diagnoses:</strong> ${p.dx.join('; ')}.<br>
+        <strong>Home Health Agency:</strong> [Agency Name on File]<br>
+        <strong>Episode Type:</strong> ${p.isNewEpisode?'New episode — initial certification period.':'Ongoing — recertification for continued services.'}<br>
+        <strong>Oversight Activities:</strong> Reviewed HHA status reports and nursing notes, communicated with agency RN regarding patient progress, reviewed functional status and vital sign trends, adjusted medication orders and plan of care as warranted.<br>
+        ${p.drMin>=30?`<strong>Physician Oversight Time:</strong> ${p.drMin} minutes personally documented this calendar month (threshold ≥30 min met for G0181).`:`<strong>Physician Oversight Time:</strong> ${p.drMin} minutes documented (G0181 not billable — ≥30 min required).`}
+      </div>
+    </div>`;
+  } else if(result.badge==='hospice'){
+    carePlanSection=`
+    <div class="ehr-section">
+      <div class="ehr-section-title">Hospice Care Plan Oversight</div>
+      <div class="ehr-body-text">
+        Patient is enrolled in a Medicare-approved hospice program. Physician provided oversight and coordination of the patient's hospice care plan this month, including review of the interdisciplinary team's reports, symptom management planning, and communication with hospice care providers.
+        <br><br>
+        <strong>Active Diagnoses:</strong> ${p.dx.join('; ')}.<br>
+        <strong>Hospice Agency:</strong> [Agency Name on File] — Medicare-approved.<br>
+        <strong>Oversight Activities:</strong> Reviewed IDT reports, communicated with hospice medical director and nursing staff, reviewed symptom burden and current medication regimen, coordinated with family regarding goals of care, adjusted orders as clinically appropriate.<br>
+        <strong>Physician Oversight Time:</strong> ${p.drMin} minutes personally documented this calendar month (threshold ≥30 min ${p.drMin>=30?'met':'not met'}).
+      </div>
+    </div>`;
+  }
+
+  const codeLines=result.codes.map(c=>{
+    const r=RATES[c]||0;
+    return`<div class="ehr-code-line">
+      <span class="ehr-code-label" style="color:${programColor}">${c}</span>
+      <span class="ehr-code-desc">${CODE_DESC[c]||''}</span>
+      <span class="ehr-code-amt">$${r.toFixed(2)}</span>
+    </div>`;
+  }).join('');
+
+  const timeLogHTML=timeLog.length>0?timeLog.map(l=>`
+    <div class="ehr-time-row">
+      <span class="ehr-time-date">${l.date}</span>
+      <span class="ehr-time-type">${l.type}</span>
+      <span class="ehr-time-desc">${l.desc}</span>
+      <span class="ehr-time-min">${l.min!=null?l.min+' min':'—'}</span>
+    </div>`).join(''):'<div style="font-size:0.62rem;color:var(--muted);padding:6px 0;">No time-based activities documented.</div>';
+
+  return`
+  <div class="ehr-note">
+    <div class="ehr-header">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;">
+        <div>
+          <div style="font-family:'Syne',sans-serif;font-size:0.65rem;font-weight:700;letter-spacing:0.1em;text-transform:uppercase;color:var(--muted);margin-bottom:2px;">Care Management Billing Note</div>
+          <div style="font-family:'Syne',sans-serif;font-size:1.1rem;font-weight:800;">${p.name}</div>
+        </div>
+        <span class="ehr-status-badge" style="background:rgba(${result.badge==='apcm'?'44,95,46':result.badge==='ccm'?'26,58,92':result.badge==='hho'?'92,58,26':'92,26,46'},0.12);color:${programColor};">${result.badge.toUpperCase()}</span>
+      </div>
+      <div class="ehr-header-grid">
+        <div class="ehr-field"><span class="ehr-field-label">DOB</span><span class="ehr-field-value">${p.dob}</span></div>
+        <div class="ehr-field"><span class="ehr-field-label">MBI</span><span class="ehr-field-value">${p.mbi}</span></div>
+        <div class="ehr-field"><span class="ehr-field-label">Service Month</span><span class="ehr-field-value">${serviceMonth}</span></div>
+        <div class="ehr-field"><span class="ehr-field-label">Note Date</span><span class="ehr-field-value">${fmtDate(today)}</span></div>
+        <div class="ehr-field"><span class="ehr-field-label">Program</span><span class="ehr-field-value" style="color:${programColor}">${programLabel}</span></div>
+        <div class="ehr-field"><span class="ehr-field-label">QMB Status</span><span class="ehr-field-value">${p.qmb?'Yes — QMB Enrolled':'No'}</span></div>
+        <div class="ehr-field"><span class="ehr-field-label">Consent</span><span class="ehr-field-value">Obtained &amp; Documented</span></div>
+        <div class="ehr-field"><span class="ehr-field-label">Chronic Conditions</span><span class="ehr-field-value">${p.dx.length} (${p.dx.join(', ')})</span></div>
+      </div>
+    </div>
+
+    ${carePlanSection}
+
+    <div class="ehr-section">
+      <div class="ehr-section-title">Time &amp; Activity Log</div>
+      <div class="ehr-time-log">${timeLogHTML}</div>
+      ${totalMins>0?`<div style="margin-top:8px;padding:8px 12px;background:var(--bg);border-radius:6px;font-size:0.62rem;display:flex;justify-content:space-between;"><span style="color:var(--muted)">Total documented time this month</span><span style="font-weight:700;">${totalMins} minutes</span></div>`:''}
+    </div>
+
+    <div class="ehr-section">
+      <div class="ehr-section-title">Billing Codes — ${serviceMonth}</div>
+      <div class="ehr-code-block">
+        ${result.codes.length>0?codeLines:'<div style="font-size:0.62rem;color:var(--muted);padding:4px 0;">No billable codes generated for this period.</div>'}
+        ${result.codes.length>1?`<div class="ehr-code-line" style="border-top:2px solid var(--rule);margin-top:4px;padding-top:6px;"><span class="ehr-code-label">Total</span><span></span><span class="ehr-code-amt" style="color:${programColor};">$${result.amount.toFixed(2)}</span></div>`:''}
+      </div>
+      <div style="margin-top:8px;font-size:0.59rem;color:var(--muted);line-height:1.6;"><strong style="color:var(--ink);">Determination:</strong> ${result.reasoning}</div>
+    </div>
+  </div>
+  <div class="ehr-sig">
+    <div class="ehr-sig-left">
+      Electronically signed and attested<br>
+      <span style="color:var(--ink);font-weight:600;">${fmtDate(today)} at ${today.toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit'})}</span>
+    </div>
+    <div class="ehr-sig-right">
+      <div class="ehr-sig-name">Attending Physician</div>
+      <div>[Practice Name] — Medicare Provider</div>
+      <div style="margin-top:4px;font-size:0.56rem;">NPI: [NPI on File] &nbsp;·&nbsp; Tax ID: [Tax ID on File]</div>
+    </div>
+  </div>`;
+}
+
+// ─────────────────────────────────────────────
+// MODAL
+// ─────────────────────────────────────────────
+let patientResults=[];
+function openModal(i){
+  if(!patientResults[i])return;
+  const p=PATIENTS[i],result=patientResults[i];
+  document.getElementById('modalPatientName').textContent=p.name;
+  document.getElementById('modalBody').innerHTML=generateNote(p,result);
+  document.getElementById('noteModal').classList.add('visible');
+}
+function closeModal(){document.getElementById('noteModal').classList.remove('visible');}
+document.getElementById('noteModal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+
+// ─────────────────────────────────────────────
+// CENSUS RENDER
+// ─────────────────────────────────────────────
+function renderCensus(){
+  const tbody=document.getElementById('censusBody');tbody.innerHTML='';
+  PATIENTS.forEach((p,i)=>{
+    const hhLabel=p.hospice?`<span class="hh-badge hospice-badge">Hospice</span>`:p.homeHealth?`<span class="hh-badge hh-yes">Home Health</span>`:`<span class="hh-badge hh-no">No</span>`;
+    const newEpLabel=p.homeHealth?(p.isNewEpisode?`<span style="color:var(--hho);font-weight:600;font-size:0.65rem;">Yes</span>`:`<span style="color:var(--muted);font-size:0.65rem;">No</span>`):`<span style="color:var(--muted);font-size:0.58rem;">—</span>`;
+    const qmbLabel=p.qmb?`<span style="color:var(--apcm);font-weight:600;font-size:0.65rem;">Yes</span>`:`<span style="color:var(--muted);font-size:0.65rem;">No</span>`;
+    const tr=document.createElement('tr');
+    tr.id=`row-${i}`;
+    tr.innerHTML=`
+      <td><div class="patient-name">${p.name}</div><div class="patient-dx">${p.dx.join(' · ')}</div></td>
+      <td><span style="font-weight:600;">${p.dx.length}</span> <span style="color:var(--muted);font-size:0.58rem;">condition${p.dx.length!==1?'s':''}</span></td>
+      <td>${hhLabel}</td>
+      <td>${newEpLabel}</td>
+      <td><div class="time-cell"><div class="time-val">${p.drMin}</div><div class="time-label">physician</div></div></td>
+      <td><div class="time-cell"><div class="time-val">${p.staffMin}</div><div class="time-label">staff</div></div></td>
+      <td>${qmbLabel}</td>
+      <td class="result-cell">
+        <div class="result-pending" id="pending-${i}">Click Analyze to evaluate</div>
+        <div class="result-content" id="result-${i}"></div>
+      </td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+// ─────────────────────────────────────────────
+// RUN ANALYSIS
+// ─────────────────────────────────────────────
+function runAnalysis(){
+  document.getElementById('overlay').classList.add('visible');
+  setTimeout(()=>{
+    document.getElementById('overlay').classList.remove('visible');
+    patientResults=[];
+    let cntApcm=0,cntCcm=0,cntHho=0,totalRev=0;
+    const progColors={apcm:'var(--apcm)',ccm:'var(--ccm)',hho:'var(--hho)',hospice:'var(--hospice)'};
+    const badgeClass={apcm:'badge-apcm',ccm:'badge-ccm',hho:'badge-hho',hospice:'badge-mixed'};
+    const badgeLabel={apcm:'APCM',ccm:'CCM',hho:'HHO',hospice:'Hospice'};
+
+    PATIENTS.forEach((p,i)=>{
+      const result=analyzePatient(p);
+      patientResults[i]=result;
+      totalRev+=result.amount;
+      if(result.badge==='apcm')cntApcm++;
+      else if(result.badge==='ccm')cntCcm++;
+      else cntHho++;
+
+      const color=progColors[result.badge];
+      const codeLines=result.codes.length>0
+        ?result.codes.map(c=>`<div style="display:flex;justify-content:space-between;align-items:baseline;padding:3px 0;border-bottom:1px solid var(--rule);gap:10px;"><div><span style="font-weight:600;color:${color};font-size:0.68rem;">${c}</span><span style="color:var(--muted);font-size:0.58rem;margin-left:6px;">${CODE_DESC[c]||''}</span></div><span style="font-weight:600;font-size:0.68rem;white-space:nowrap;">$${(RATES[c]||0).toFixed(2)}</span></div>`).join('')
+        :`<div style="font-size:0.6rem;color:var(--muted);padding:4px 0;font-style:italic;">No billable codes</div>`;
+
+      document.getElementById(`pending-${i}`).style.display='none';
+      const el=document.getElementById(`result-${i}`);
+      el.innerHTML=`
+        <div style="margin-bottom:6px;">
+          <span style="font-family:'Syne',sans-serif;font-size:0.78rem;font-weight:700;">${result.program}</span>
+          <span class="best-badge ${badgeClass[result.badge]}">${badgeLabel[result.badge]}</span>
+        </div>
+        ${codeLines}
+        ${result.codes.length>1?`<div style="display:flex;justify-content:space-between;padding:4px 0 2px;"><span style="font-size:0.6rem;color:var(--muted);">Total / month</span><span style="font-weight:700;font-size:0.7rem;color:${color};">$${result.amount.toFixed(2)}</span></div>`:result.codes.length===1?`<div style="padding:3px 0 2px;font-size:0.7rem;font-weight:700;color:${color};">$${result.amount.toFixed(2)} / month</div>`:''}
+        <div style="font-size:0.57rem;color:var(--muted);line-height:1.5;border-top:1px dashed var(--rule);padding-top:4px;margin-top:2px;">${result.reasoning}</div>
+        <button class="view-note-btn visible" onclick="event.stopPropagation();openModal(${i})">View Billing Note</button>
+        ${result.warning?`<div style="margin-top:5px;padding:4px 8px;background:#fff3cd;border-radius:4px;font-size:0.57rem;color:#6b4f00;">${result.warning}</div>`:''}`;
+      el.classList.add('visible');
+
+      // Row click to open note
+      const row=document.getElementById(`row-${i}`);
+      row.classList.add('analyzed');
+      row.onclick=()=>openModal(i);
+    });
+
+    document.getElementById('bnPatients').textContent=PATIENTS.length;
+    document.getElementById('bnApcm').textContent=cntApcm;
+    document.getElementById('bnCcm').textContent=cntCcm;
+    document.getElementById('bnHho').textContent=cntHho;
+    document.getElementById('bnTotal').textContent='$'+totalRev.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('analysisBanner').classList.add('visible');
+    document.getElementById('censusHint').textContent='click any row to view billing note';
+    document.getElementById('analyzeBtn').textContent='Re-Analyze';
+  },5000);
+}
+
+// ─────────────────────────────────────────────
+// INIT
+// ─────────────────────────────────────────────
+renderCensus();
+</script>
+</body>
+</html>

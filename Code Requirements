@@ -1,0 +1,205 @@
+PATIENT REQUIREMENTS — CPT/HCPCS CODE ELIGIBILITY REFERENCE
+============================================================
+
+This document lists every billing code the system must evaluate, the
+eligibility criteria for each, required data inputs, time thresholds,
+reimbursement rates, and exclusion rules.
+
+Rates reflect 2025 Medicare Physician Fee Schedule national averages.
+
+
+────────────────────────────────────────────────────────────
+APCM — ADVANCED PRIMARY CARE MANAGEMENT
+────────────────────────────────────────────────────────────
+
+Key rule: APCM has no time requirement. One level per patient per month.
+Cannot be billed with CCM, HHO, or Hospice in the same month. Requires
+a population health management platform.
+
+
+G0556 — Level 1 (Low Complexity)
+Rate: $15.20 / month
+
+  - Eligibility: Any Medicare patient with 0–1 chronic conditions
+  - Data needed: Chronic condition count from problem list
+  - Time requirement: None
+  - Exclusions: Cannot bill if CCM, HHO, or Hospice codes are billed
+    same month
+
+
+G0557 — Level 2 (Moderate Complexity)
+Rate: $48.84 / month
+
+  - Eligibility: Medicare patient with 2+ chronic conditions
+  - Data needed: Chronic condition count from problem list (must be ≥2)
+  - Time requirement: None
+  - Exclusions: Cannot bill if CCM, HHO, or Hospice codes are billed
+    same month. Patient must NOT be QMB (otherwise G0558 applies).
+
+
+G0558 — Level 3 (High Complexity — QMB)
+Rate: $107.07 / month
+
+  - Eligibility: Qualified Medicare Beneficiary (QMB) with 2+ chronic
+    conditions
+  - Data needed: QMB status from insurance/eligibility data + chronic
+    condition count ≥2
+  - Time requirement: None
+  - Exclusions: Cannot bill if CCM, HHO, or Hospice codes are billed
+    same month
+  - QMB verification: To bill this code, QMB status must be confirmed
+    by either viewing the patient's insurance card or prompting the
+    practice to verify the patient's QMB status. Without verified QMB
+    status, the patient defaults to G0557 (Level 2).
+
+
+────────────────────────────────────────────────────────────
+CCM — CHRONIC CARE MANAGEMENT
+────────────────────────────────────────────────────────────
+
+Key rule: CCM requires 2+ chronic conditions expected to last 12+
+months. Two mutually exclusive tracks:
+
+  Staff track (99490/99439) — uses clinical staff time
+  Provider track (99491/99437) — uses physician/NP time
+
+You pick one track per patient per month — never mix. Cannot bill with
+APCM, HHO, or Hospice.
+
+
+STAFF TRACK
+-----------
+
+99490 — Staff Base (Non-Complex CCM)
+Rate: $60.49 / month
+
+  - Eligibility: Patient with 2+ chronic conditions expected to last
+    12+ months
+  - Time requirement: ≥20 minutes of clinical staff time per calendar
+    month
+  - Data needed: Staff minutes from EHR notes (context-based
+    extraction) + chronic condition count
+  - Who performs: Clinical staff under general physician supervision
+  - Exclusions: Cannot bill with 99491/99437 (provider track) or
+    APCM/HHO/Hospice
+
+
+99439 — Staff Add-on (Each Additional 20 Minutes)
+Rate: $45.93 / unit
+
+  - Eligibility: Can only bill as add-on to 99490
+  - Time requirement: Each additional 20 minutes of clinical staff
+    time beyond the base 20
+  - Max units: 2 per month (total staff time cap: 60 minutes billable)
+  - Data needed: Total staff minutes.
+    Units = floor((staffMin − 20) / 20), max 2
+
+
+PROVIDER TRACK
+--------------
+
+99491 — Provider Base (Physician/NP Performed)
+Rate: $82.16 / month
+
+  - Eligibility: Patient with 2+ chronic conditions expected to last
+    12+ months
+  - Time requirement: ≥30 minutes of physician/NP/PA time per calendar
+    month
+  - Data needed: Provider minutes from EHR notes (context-based
+    extraction) + chronic condition count
+  - Who performs: Physician, NP, or PA personally
+  - Exclusions: Cannot bill with 99490/99439 (staff track) or
+    APCM/HHO/Hospice
+
+
+99437 — Provider Add-on (Each Additional 30 Minutes)
+Rate: $57.58 / unit
+
+  - Eligibility: Can only bill as add-on to 99491
+  - Time requirement: Each additional 30 minutes of provider time
+    beyond the base 30
+  - Max units: 2 per month (total provider time cap: 90 minutes
+    billable)
+  - Data needed: Total provider minutes.
+    Units = floor((drMin − 30) / 30), max 2
+
+
+────────────────────────────────────────────────────────────
+HHO — HOME HEALTH OVERSIGHT
+────────────────────────────────────────────────────────────
+
+Key rule: Patient must be actively receiving home health services.
+Certification codes (G0180/G0179) and supervision (G0181) CAN be billed
+in the same month. Cannot bill with APCM, CCM, or Hospice.
+
+
+G0180 — Initial Home Health Certification
+Rate: $53.48 / episode
+
+  - Eligibility: Patient starting a new home health episode (not
+    receiving HH in prior 60 days)
+  - Data needed: Home health enrollment status from notes + new episode
+    confirmation
+  - Data source: EHR clinical notes — identify new HH episode start,
+    agency certification
+  - Frequency: Once per new episode
+
+
+G0179 — Home Health Recertification
+Rate: $41.40 / recertification
+
+  - Eligibility: Patient continuing home health services past initial
+    60-day episode
+  - Data needed: Home health enrollment status + NOT a new episode
+  - Data source: EHR clinical notes — identify ongoing HH services,
+    recertification
+  - Frequency: Every 60 days for continued episodes
+
+
+G0181 — Monthly Home Health Supervision
+Rate: $106.24 / month
+
+  - Eligibility: Active home health enrollment + physician oversight
+    time ≥30 min/month
+  - Time requirement: ≥30 minutes physician time supervising the HH
+    plan of care
+  - Data needed: Home health enrollment from notes + provider minutes
+    from notes
+  - Stacking: Can be billed alongside G0180 or G0179 in the same month
+
+
+────────────────────────────────────────────────────────────
+HOSPICE — HOSPICE CARE OVERSIGHT
+────────────────────────────────────────────────────────────
+
+G0182 — Hospice Care Plan Supervision
+Rate: $106.24 / month
+
+  - Eligibility: Patient enrolled in a Medicare-approved hospice
+    program
+  - Time requirement: ≥30 minutes physician time supervising hospice
+    plan of care per month
+  - Data needed: Hospice enrollment from EHR notes + provider minutes
+    from notes
+  - Data source: EHR clinical notes — identify hospice agency
+    enrollment, physician oversight documentation
+  - Exclusions: Cannot bill with APCM, CCM, or HHO in the same month
+
+
+────────────────────────────────────────────────────────────
+CONCURRENT BILLING EXCLUSION MATRIX
+────────────────────────────────────────────────────────────
+
+The system must enforce these restrictions. No two blocked programs can
+appear on the same patient in the same calendar month.
+
+             APCM    CCM Staff   CCM Provider   HHO     Hospice
+  APCM        —      Blocked     Blocked        Blocked Blocked
+  CCM Staff   Blocked —          Blocked        Blocked Blocked
+  CCM Prov    Blocked Blocked    —              Blocked Blocked
+  HHO         Blocked Blocked    Blocked        —       Blocked
+  Hospice     Blocked Blocked    Blocked        Blocked —
+
+Exception within HHO: G0180/G0179 (certification) and G0181 (monthly
+supervision) CAN be billed together in the same month. They are within
+the same program, not across programs.
