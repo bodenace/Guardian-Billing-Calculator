@@ -154,6 +154,43 @@ body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-
    CALCULATOR REDESIGN
 ══════════════════════════════════════ */
 .calc-container{max-width:1400px;margin:0 auto;}
+/* Simple view (default) */
+.simple-view-wrap{max-width:900px;margin:0 auto 24px;}
+.simple-view-wrap .patient-hero{max-width:180px;margin:0 auto 24px;padding:16px 20px;}
+.simple-view-wrap .patient-hero-input{width:100%;max-width:120px;margin:0 auto;display:block;}
+.simple-view-results{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:8px;}
+@media(max-width:420px){.simple-view-results{grid-template-columns:1fr;}}
+.simple-view-result{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow-sm);}
+.simple-view-result .sv-label{font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;font-weight:600;margin-bottom:8px;}
+.simple-view-result .sv-value{font-family:'Plus Jakarta Sans',sans-serif;font-weight:800;letter-spacing:-0.02em;line-height:1.2;}
+.simple-view-result .sv-sub{font-size:0.72rem;margin-top:6px;}
+/* Revenue = primary (accent, larger) */
+.simple-view-result.sv-revenue{border-color:rgba(5,150,105,0.35);background:linear-gradient(to bottom, rgba(5,150,105,0.04), var(--surface));}
+.simple-view-result.sv-revenue .sv-label{color:var(--apcm);}
+.simple-view-result.sv-revenue .sv-value{font-size:1.75rem;color:var(--apcm);}
+.simple-view-result.sv-revenue .sv-sub{color:var(--muted);}
+/* Time saved = secondary (muted, compact) */
+.simple-view-result.sv-time .sv-label{color:var(--muted);}
+.simple-view-result.sv-time .sv-value{font-size:1.25rem;color:var(--ink);}
+.simple-view-result.sv-time .sv-sub{color:var(--muted);}
+.simple-view-breakdown{margin-top:20px;display:grid;grid-template-columns:1fr 1fr;gap:18px;}
+@media(max-width:640px){.simple-view-breakdown{grid-template-columns:1fr;}}
+.simple-breakdown-card{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius);overflow:hidden;box-shadow:var(--shadow-sm);}
+.simple-breakdown-card .breakdown-head{padding:12px 16px;border-bottom:1px solid var(--rule);font-size:0.65rem;letter-spacing:0.08em;text-transform:uppercase;color:var(--muted);font-weight:600;}
+.simple-breakdown-card .breakdown-body{padding:10px 16px 14px;}
+.simple-breakdown-row{display:flex;justify-content:space-between;align-items:baseline;padding:5px 0;font-size:0.78rem;gap:10px;}
+.simple-breakdown-row .bd-label{font-weight:500;color:var(--ink);}
+.simple-breakdown-row .bd-value{font-family:'JetBrains Mono',monospace;font-weight:600;white-space:nowrap;}
+.simple-breakdown-row.total{border-top:1px solid var(--rule);margin-top:6px;padding-top:8px;font-weight:700;}
+.simple-breakdown-row.total .bd-value{font-size:0.88rem;}
+.advanced-toggle-wrap{margin-top:20px;}
+.advanced-toggle-btn{display:inline-flex;align-items:center;gap:8px;padding:10px 16px;font-size:0.8rem;font-weight:600;color:var(--muted);background:transparent;border:1px solid var(--rule);border-radius:10px;cursor:pointer;transition:all 0.2s ease;font-family:'Inter',sans-serif;}
+.advanced-toggle-btn:hover{color:var(--ink);border-color:var(--ink);background:rgba(15,23,42,0.03);}
+.advanced-toggle-btn .arrow{display:inline-block;transition:transform 0.2s ease;}
+.calc-advanced.open .advanced-toggle-btn .arrow{transform:rotate(180deg);}
+.calc-advanced{margin-top:8px;}
+.calc-advanced .calc-advanced-inner{display:none;}
+.calc-advanced.open .calc-advanced-inner{display:block;}
 .calc-top{display:grid;grid-template-columns:220px 1fr;gap:18px;margin-bottom:24px;align-items:start;}
 @media(max-width:700px){.calc-top{grid-template-columns:1fr;}}
 .patient-hero{background:var(--surface);border:1px solid var(--rule);border-radius:var(--radius);padding:20px 22px;box-shadow:var(--shadow-sm);}
@@ -519,6 +556,45 @@ body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-
   </div>
 
   <div class="calc-container">
+    <!-- Simple view: one input, auto time saved + revenue -->
+    <div class="simple-view-wrap">
+      <div class="patient-hero">
+        <label>Number of patients</label>
+        <input type="number" class="patient-hero-input" id="simplePatientCount" value="200" min="1" max="99999" oninput="updateSimpleView()">
+        <div style="font-size:0.68rem;color:var(--muted);margin-top:8px;text-align:center;">Active patients in practice</div>
+      </div>
+      <div class="simple-view-results">
+        <div class="simple-view-result sv-time">
+          <div class="sv-label">Time saved (employees)</div>
+          <div class="sv-value" id="simpleTimeSaved">—</div>
+          <div class="sv-sub">per month creating billing notes</div>
+        </div>
+        <div class="simple-view-result sv-revenue">
+          <div class="sv-label">Revenue generated</div>
+          <div class="sv-value" id="simpleRevenue">—</div>
+          <div class="sv-sub" id="simpleRevenueAnnual">—</div>
+        </div>
+      </div>
+      <div class="simple-view-breakdown" id="simpleViewBreakdown">
+        <div class="simple-breakdown-card">
+          <div class="breakdown-head">Revenue by program</div>
+          <div class="breakdown-body" id="simpleRevenueBreakdown"></div>
+        </div>
+        <div class="simple-breakdown-card">
+          <div class="breakdown-head">Time saved by program</div>
+          <div class="breakdown-body" id="simpleTimeBreakdown"></div>
+        </div>
+      </div>
+      <div class="advanced-toggle-wrap">
+        <button type="button" class="advanced-toggle-btn" id="advancedToggleBtn" onclick="toggleCalcAdvanced()" aria-expanded="false">
+          <span class="arrow">▼</span> Show advanced options
+        </button>
+      </div>
+    </div>
+
+    <!-- Advanced view: program % and code selection (hidden by default) -->
+    <div class="calc-advanced" id="calcAdvancedWrap">
+      <div class="calc-advanced-inner">
     <div class="calc-top">
       <div class="patient-hero">
         <label>Total Patients</label>
@@ -737,6 +813,8 @@ body{background:var(--bg);color:var(--ink);font-family:'Inter',system-ui,-apple-
       <div class="rule-row"><div class="rule-dot"></div>Select specific billing codes within each program to define the expected reimbursement per patient.</div>
       <div class="rule-row"><div class="rule-dot"></div>Revenue = (total patients × program %) × sum of selected code rates per patient.</div>
     </div>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -829,8 +907,170 @@ const PROG_COLORS = {rpm:'var(--rpm)',apcm:'var(--apcm)',ccm:'var(--ccm)',hho:'v
 const PROG_NAMES = {rpm:'RPM',apcm:'APCM',ccm:'CCM',hho:'HHO',hospice:'Hospice'};
 const EXCLUSIVE_PROGS = ['apcm','ccm','hho','hospice'];
 const ALL_PROGS = ['rpm','apcm','ccm','hho','hospice'];
-/** Staff billing time saved per patient per month (minutes) */
+/** Staff billing time saved per patient per month (minutes) — doubled for simple-view display per feedback */
 const STAFF_MIN_PER_PATIENT = {rpm:5, apcm:5, ccm:10, hho:10, hospice:3};
+const STAFF_MIN_PER_PATIENT_DOUBLED = {rpm:10, apcm:10, ccm:20, hho:20, hospice:6};
+
+/**
+ * Default code mix for simple view / preset: revenue from patient count with no other input.
+ * APCM: Level 2 @ 20%, Level 1 @ 15%, Level 3 @ 5%.
+ * CCM: 99490 only @ 20%; 99490+99439 @ 30% (overlapping).
+ * HHO: G0180+G0181 @ 15%; G0181 only @ 10% (25% oversight total, 15% with initial cert).
+ * Hospice: G0182 @ 5%.
+ * RPM: 100% of patients (default codes 99454+99457 = device + first 20 min).
+ */
+const DEFAULT_CODE_MIX = {
+  apcm: [
+    { pct: 20, code: 'G0557' },
+    { pct: 15, code: 'G0556' },
+    { pct: 5, code: 'G0558' }
+  ],
+  ccm: [
+    { pct: 20, codes: ['99490'] },
+    { pct: 30, codes: ['99490', '99439'] }
+  ],
+  hho: [
+    { pct: 15, codes: ['G0180', 'G0181'] },
+    { pct: 10, codes: ['G0181'] }
+  ],
+  hospice: [{ pct: 5, code: 'G0182' }],
+  rpm: { pct: 100, codes: ['99454', '99457'] }
+};
+
+function calcSimpleView(totalPatients) {
+  const n = Math.max(0, totalPatients);
+  let revenueMonthly = 0;
+  const byProg = { rpm: 0, apcm: 0, ccm: 0, hho: 0, hospice: 0 };
+  const byProgMinutes = { rpm: 0, apcm: 0, ccm: 0, hho: 0, hospice: 0 };
+  let totalStaffMin = 0;
+
+  // APCM
+  DEFAULT_CODE_MIX.apcm.forEach(({ pct, code }) => {
+    const rev = n * (pct / 100) * (RATES[code] || 0);
+    const min = n * (pct / 100) * (STAFF_MIN_PER_PATIENT_DOUBLED.apcm || 0);
+    byProg.apcm += rev;
+    byProgMinutes.apcm += min;
+    revenueMonthly += rev;
+    totalStaffMin += min;
+  });
+
+  // CCM
+  DEFAULT_CODE_MIX.ccm.forEach(({ pct, codes }) => {
+    const rate = codes.reduce((s, c) => s + (RATES[c] || 0), 0);
+    const rev = n * (pct / 100) * rate;
+    const min = n * (pct / 100) * (STAFF_MIN_PER_PATIENT_DOUBLED.ccm || 0);
+    byProg.ccm += rev;
+    byProgMinutes.ccm += min;
+    revenueMonthly += rev;
+    totalStaffMin += min;
+  });
+
+  // HHO
+  DEFAULT_CODE_MIX.hho.forEach(({ pct, codes }) => {
+    const rate = codes.reduce((s, c) => s + (RATES[c] || 0), 0);
+    const rev = n * (pct / 100) * rate;
+    const min = n * (pct / 100) * (STAFF_MIN_PER_PATIENT_DOUBLED.hho || 0);
+    byProg.hho += rev;
+    byProgMinutes.hho += min;
+    revenueMonthly += rev;
+    totalStaffMin += min;
+  });
+
+  // Hospice
+  DEFAULT_CODE_MIX.hospice.forEach(({ pct, code }) => {
+    const rev = n * (pct / 100) * (RATES[code] || 0);
+    const min = n * (pct / 100) * (STAFF_MIN_PER_PATIENT_DOUBLED.hospice || 0);
+    byProg.hospice += rev;
+    byProgMinutes.hospice += min;
+    revenueMonthly += rev;
+    totalStaffMin += min;
+  });
+
+  // RPM — 100% of patients
+  const rpmRate = (DEFAULT_CODE_MIX.rpm.codes || []).reduce((s, c) => s + (RATES[c] || 0), 0);
+  const rpmRev = n * (DEFAULT_CODE_MIX.rpm.pct / 100) * rpmRate;
+  const rpmMin = n * (DEFAULT_CODE_MIX.rpm.pct / 100) * (STAFF_MIN_PER_PATIENT_DOUBLED.rpm || 0);
+  byProg.rpm = rpmRev;
+  byProgMinutes.rpm = rpmMin;
+  revenueMonthly += rpmRev;
+  totalStaffMin += rpmMin;
+
+  const timeSavedHours = totalStaffMin / 60;
+  return {
+    revenueMonthly,
+    revenueAnnual: revenueMonthly * 12,
+    timeSavedMinutes: totalStaffMin,
+    timeSavedHours,
+    byProg,
+    byProgMinutes
+  };
+}
+
+function updateSimpleView() {
+  const n = Math.max(0, parseInt(document.getElementById('simplePatientCount').value) || 0);
+  const elTime = document.getElementById('simpleTimeSaved');
+  const elRev = document.getElementById('simpleRevenue');
+  const elRevAnnual = document.getElementById('simpleRevenueAnnual');
+  const totalPatientsEl = document.getElementById('totalPatients');
+  const revBreakdownEl = document.getElementById('simpleRevenueBreakdown');
+  const timeBreakdownEl = document.getElementById('simpleTimeBreakdown');
+  if (totalPatientsEl) totalPatientsEl.value = n || 200;
+  if (n <= 0) {
+    if (elTime) elTime.textContent = '—';
+    if (elRev) elRev.textContent = '—';
+    if (elRevAnnual) elRevAnnual.textContent = 'Enter patient count';
+    if (revBreakdownEl) revBreakdownEl.innerHTML = '<div class="simple-breakdown-row"><span class="bd-label">—</span><span class="bd-value">—</span></div>';
+    if (timeBreakdownEl) timeBreakdownEl.innerHTML = '<div class="simple-breakdown-row"><span class="bd-label">—</span><span class="bd-value">—</span></div>';
+    return;
+  }
+  const r = calcSimpleView(n);
+  if (elTime) elTime.textContent = r.timeSavedHours >= 1 ? (r.timeSavedHours.toFixed(1) + ' hrs') : (r.timeSavedMinutes.toFixed(0) + ' min');
+  if (elRev) elRev.textContent = '$' + r.revenueMonthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  if (elRevAnnual) elRevAnnual.textContent = 'Annual: $' + r.revenueAnnual.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+
+  // Revenue by program
+  if (revBreakdownEl) {
+    let html = '';
+    ALL_PROGS.forEach(prog => {
+      if (r.byProg[prog] > 0) {
+        html += `<div class="simple-breakdown-row"><span class="bd-label" style="color:${PROG_COLORS[prog]}">${PROG_NAMES[prog]}</span><span class="bd-value">$${r.byProg[prog].toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>`;
+      }
+    });
+    html += `<div class="simple-breakdown-row total"><span class="bd-label">Total</span><span class="bd-value">$${r.revenueMonthly.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</span></div>`;
+    revBreakdownEl.innerHTML = html;
+  }
+
+  // Time saved by program (hours, or min if < 1 hr)
+  if (timeBreakdownEl && r.byProgMinutes) {
+    let html = '';
+    ALL_PROGS.forEach(prog => {
+      const min = r.byProgMinutes[prog] || 0;
+      if (min > 0) {
+        const disp = min >= 60 ? (min / 60).toFixed(1) + ' hrs' : min.toFixed(0) + ' min';
+        html += `<div class="simple-breakdown-row"><span class="bd-label" style="color:${PROG_COLORS[prog]}">${PROG_NAMES[prog]}</span><span class="bd-value">${disp}</span></div>`;
+      }
+    });
+    const totalDisp = r.timeSavedMinutes >= 60 ? (r.timeSavedMinutes / 60).toFixed(1) + ' hrs' : r.timeSavedMinutes.toFixed(0) + ' min';
+    html += `<div class="simple-breakdown-row total"><span class="bd-label">Total</span><span class="bd-value">${totalDisp}</span></div>`;
+    timeBreakdownEl.innerHTML = html;
+  }
+}
+
+function toggleCalcAdvanced() {
+  const wrap = document.getElementById('calcAdvancedWrap');
+  const btn = document.getElementById('advancedToggleBtn');
+  if (!wrap || !btn) return;
+  wrap.classList.toggle('open');
+  const isOpen = wrap.classList.contains('open');
+  btn.setAttribute('aria-expanded', isOpen);
+  btn.innerHTML = isOpen ? '<span class="arrow">▼</span> Hide advanced options' : '<span class="arrow">▼</span> Show advanced options';
+  if (isOpen) {
+    const simpleVal = document.getElementById('simplePatientCount');
+    const totalEl = document.getElementById('totalPatients');
+    if (simpleVal && totalEl) totalEl.value = simpleVal.value || 200;
+    recalcAll();
+  }
+}
 
 function getSelectedCodesForProg(prog){
   const card=document.getElementById('progCard-'+prog);
@@ -1325,6 +1565,7 @@ function runAnalysis(){
 // INIT
 // ─────────────────────────────────────────────
 renderCensus();
+updateSimpleView();
 </script>
 </body>
 </html>
